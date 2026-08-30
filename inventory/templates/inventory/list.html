@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Inventory{% endblock %}
+
+{% block content %}
+	<h1 class="text-3xl font-bold tracking-tight text-base-content">Inventory</h1>
+	<p class="text-base-content/60 mb-4">
+		{{ inventory|length }} row{{ inventory|length|pluralize }}
+	</p>
+	<div class="overflow-x-auto bg-base-100 rounded-box shadow-sm">
+		<table class="table">
+			<thead>
+				<tr class="text-xs uppercase tracking-wide text-base-content/60">
+					<th>SKU</th>
+					<th>Product</th>
+					<th>Warehouse</th>
+					<th>Available</th>
+					<th>Reserved</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for row in inventory %}
+				<tr>
+					<td>{{ row.product.sku }}</td>
+					<td>{{ row.product.name }}</td>
+					<td>{{ row.warehouse.location_code }}</td>
+					<td>{{ row.quantity_available }}</td>
+					<td>{{ row.quantity_reserved }}</td>
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="5" class="text-center text-base-content/60">
+						No inventory yet.
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endblock %}

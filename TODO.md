@@ -21,8 +21,9 @@ ERD and rationale behind each model.
       admin registration, SSR list view + template at `/products/`
 - [x] `warehouses` — `Warehouse` (name, location_code), admin registration,
       SSR list view + template at `/warehouses/`
-- [ ] `inventory` — `Inventory` (real FK to product + warehouse, unique
-      together, quantity_available/reserved), `StockMovement` audit ledger
+- [x] `inventory` — `Inventory` (real FK to product + warehouse, unique
+      together, quantity_available/reserved), `StockMovement` audit ledger,
+      admin registration, SSR list view + template at `/inventory/`
 - [ ] `customers` — `Customer` (name, email, phone)
 - [ ] `orders` — `Order` (status enum, total_amount), `OrderItem`
       (unit_price_at_order, unique with order+product)
@@ -32,12 +33,13 @@ ERD and rationale behind each model.
 
 ## Schema fixes carried over from the old backend
 
-- [ ] Real FK from `Inventory.warehouse_id` → `Warehouse` (was a plain string)
+- [x] Real FK from `Inventory.warehouse_id` → `Warehouse` (was a plain string)
 - [ ] Real FK from `Order.customer_id` → `Customer` (was a plain string)
 - [ ] DB-level enum/choices for `Order.status` and `PurchaseOrder.status`
-- [ ] Unique constraint on `(product_id, warehouse_id)` in `Inventory`
-- [ ] Quantity check constraints (`quantity_available >= 0`, etc.)
-- [ ] `updated_at` timestamps on `Inventory`, `Order`, `Product`
+- [x] Unique constraint on `(product_id, warehouse_id)` in `Inventory`
+- [x] Quantity check constraints (`quantity_available >= 0`, etc.) on
+      `Inventory`
+- [ ] `updated_at` timestamps on `Order`, `Product` (`Inventory` has it)
 
 ## Frontend
 
