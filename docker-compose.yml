@@ -1,4 +1,4 @@
-name: 'atlas_ims'
+name: 'totes'
 
 services:
   postgres:

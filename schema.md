@@ -1,4 +1,4 @@
-# AtlasIMS — Current Data Schema
+# Totes — Current Data Schema
 
 Reflects `backend/app/modules/*/models.py` as of the latest commit. This is
 the schema _as implemented_, including the gaps called out at the bottom.
