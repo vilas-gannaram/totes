@@ -1,0 +1,10 @@
+[project]
+name = "totes"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=6.1",
+    "psycopg2-binary>=2.9.12",
+    "python-dotenv>=1.2.3",
+]
