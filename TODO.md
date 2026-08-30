@@ -17,7 +17,8 @@ ERD and rationale behind each model.
 
 ## Apps (domain modules)
 
-- [ ] `products` — `Product` (sku, name, category, unit_price, reorder_point)
+- [x] `products` — `Product` (sku, name, category, unit_price, reorder_point),
+      admin registration, SSR list view + template at `/products/`
 - [ ] `warehouses` — `Warehouse` (name, location_code)
 - [ ] `inventory` — `Inventory` (real FK to product + warehouse, unique
       together, quantity_available/reserved), `StockMovement` audit ledger
@@ -36,6 +37,15 @@ ERD and rationale behind each model.
 - [ ] Unique constraint on `(product_id, warehouse_id)` in `Inventory`
 - [ ] Quantity check constraints (`quantity_available >= 0`, etc.)
 - [ ] `updated_at` timestamps on `Inventory`, `Order`, `Product`
+
+## Frontend
+
+- [x] Use Django templates for SSR (internal-tool style); revisit a CSR
+      frontend + DRF API later for any customer-facing UI
+- [ ] Decide: root-level `templates/` dir (shared `base.html`, per-app
+      subfolders) vs. current per-app `templates/<app>/` layout
+- [ ] `base.html` with common layout, convert existing templates to
+      `{% extends %}` it
 
 ## Features
 
