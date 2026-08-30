@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="en" data-theme="corporate">
 	<head>
@@ -5,17 +6,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{% block title %}Totes{% endblock %}</title>
 
-		<link
-			href="https://cdn.jsdelivr.net/npm/daisyui@5"
-			rel="stylesheet"
-			type="text/css"
-		/>
-		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		<link href="{% static 'css/output.css' %}" rel="stylesheet" type="text/css" />
 	</head>
 	<body class="min-h-screen bg-base-200">
 		<div class="navbar bg-base-100 shadow-sm px-4">
 			<div class="flex-1">
-				<a href="{% url 'product-list' %}" class="btn btn-ghost text-xl"
+				<a
+					href="{% url 'product-list' %}"
+					class="btn btn-ghost text-xl font-bold tracking-tight"
 					>Totes</a
 				>
 			</div>

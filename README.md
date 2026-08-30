@@ -13,11 +13,16 @@ Inventory management system, built with Django.
 ## Getting started
 
 ```
-make install    # uv sync
-make migrate    # apply migrations
-make superuser  # create an admin login
-make run        # start the dev server at http://127.0.0.1:8000/
+make install      # uv sync
+make css-install   # download tailwindcss + daisyUI (one-time; no Node.js needed)
+make css-build     # compile static/css/output.css
+make migrate       # apply migrations
+make superuser     # create an admin login
+make run           # start the dev server at http://127.0.0.1:8000/
 ```
+
+While actively changing styles, run `make css-watch` instead of `css-build`
+to recompile on save.
 
 Admin panel: `http://127.0.0.1:8000/admin/`
 

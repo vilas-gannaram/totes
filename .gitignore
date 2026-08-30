@@ -431,3 +431,9 @@ FodyWeavers.xsd
 # Python / Django
 .venv/
 db.sqlite3
+
+# daisyUI/Tailwind build artifacts (fetched/generated via `make css-install`)
+static/css/tailwindcss
+static/css/daisyui.mjs
+static/css/daisyui-theme.mjs
+static/css/output.css
