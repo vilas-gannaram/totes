@@ -1,15 +1,31 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="corporate">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>{% block title %}Totes{% endblock %}</title>
+
+		<link
+			href="https://cdn.jsdelivr.net/npm/daisyui@5"
+			rel="stylesheet"
+			type="text/css"
+		/>
+		<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 	</head>
-	<body>
-		<nav>
-			<a href="{% url 'product-list' %}">Products</a>
-			<a href="{% url 'warehouse-list' %}">Warehouses</a>
-		</nav>
-		{% block content %}{% endblock %}
+	<body class="min-h-screen bg-base-200">
+		<div class="navbar bg-base-100 shadow-sm px-4">
+			<div class="flex-1">
+				<a href="{% url 'product-list' %}" class="btn btn-ghost text-xl"
+					>Totes</a
+				>
+			</div>
+			<div class="flex-none">
+				<ul class="menu menu-horizontal px-1">
+					<li><a href="{% url 'product-list' %}">Products</a></li>
+					<li><a href="{% url 'warehouse-list' %}">Warehouses</a></li>
+				</ul>
+			</div>
+		</div>
+		<main class="max-w-4xl mx-auto p-6">{% block content %}{% endblock %}</main>
 	</body>
 </html>

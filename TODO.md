@@ -47,8 +47,8 @@ ERD and rationale behind each model.
       per-app `templates/<app>/` dirs for per-app content
 - [x] `base.html` with common layout (nav + `{% block content %}`),
       existing templates converted to `{% extends %}` it
-- [ ] Consider [daisyUI via CDN](https://daisyui.com/docs/cdn/) for styling
-      views instead of hand-rolled CSS
+- [x] Use [daisyUI via CDN](https://daisyui.com/docs/cdn/) (+ Tailwind
+      browser build) for styling views instead of hand-rolled CSS
 
 ## Features
 

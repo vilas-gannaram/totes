@@ -3,10 +3,29 @@
 {% block title %}Warehouses{% endblock %}
 
 {% block content %}
-	<h1>Warehouses</h1>
-	<ul>
-		{% for warehouse in warehouses %}
-		<li>{{ warehouse.location_code }} — {{ warehouse.name }}</li>
-		{% endfor %}
-	</ul>
+	<h1 class="text-2xl font-bold mb-4">Warehouses</h1>
+	<div class="overflow-x-auto bg-base-100 rounded-box shadow-sm">
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Location code</th>
+					<th>Name</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for warehouse in warehouses %}
+				<tr>
+					<td>{{ warehouse.location_code }}</td>
+					<td>{{ warehouse.name }}</td>
+				</tr>
+				{% empty %}
+				<tr>
+					<td colspan="2" class="text-center text-base-content/60">
+						No warehouses yet.
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
 {% endblock %}
