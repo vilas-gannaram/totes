@@ -81,11 +81,13 @@ Three pieces, wired together:
   `products/templates/products/list.html`, then reference it as
   `"products/list.html"` in `render()`. Skippable while there's only one
   app; worth revisiting once multiple apps have templates.
-- Alternative layout: single root-level `templates/` dir with per-app
-  subfolders (`templates/products/...`), wired via
-  `TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]`. Better home for shared
-  chrome like `base.html`. Not yet decided for this project — tracked in
-  `TODO.md`.
+- Decided for this project: **both**, not either/or. A root-level
+  `templates/` dir (wired via
+  `TEMPLATES[0]["DIRS"] = [BASE_DIR / "templates"]`) holds shared chrome
+  (`base.html`), while each app keeps its own `templates/<app>/` dir for
+  its own views. `{% extends "base.html" %}` resolves via `DIRS` (checked
+  before `APP_DIRS`), same as Nunjucks `extends`/EJS `include` in JS
+  frameworks — Django just ships this natively.
 - Django does NOT inject any HTML boilerplate into templates — a template
   is rendered exactly as written, doctype/head/body included, nothing
   implicit.
@@ -115,3 +117,57 @@ interactivity tools (this project, for now). A customer-facing product with
 rich interactivity would want a CSR/SPA frontend talking to a JSON API
 (e.g. Django REST Framework) instead. Not mutually exclusive — the same
 models can back both an SSR admin-style UI and a JSON API later.
+
+## Foreign keys and DB-level constraints (from `inventory`)
+
+- `models.ForeignKey("products.Product", on_delete=models.CASCADE)` — the
+  `"app_label.Model"` string form avoids a circular import when the target
+  app isn't imported directly; `on_delete` is required and decides what
+  happens to this row when the referenced row is deleted (`CASCADE` deletes
+  it too).
+- `class Meta: constraints = [...]` is where real DB-level constraints live,
+  as opposed to field kwargs that only validate at the Django/form layer:
+  - `models.UniqueConstraint(fields=[...], name=...)` — multi-column
+    uniqueness (`unique_together` on a single field isn't enough for
+    "unique per product+warehouse").
+  - `models.CheckConstraint(condition=models.Q(...), name=...)` — an actual
+    SQL `CHECK`. Note: `PositiveIntegerField` only stops negative values
+    from Django's own validation (forms/`full_clean()`) — it is **not** a
+    DB-level check constraint by itself. Direct SQL or a
+    `.update()`/bulk write can still slip a negative value in without
+    `CheckConstraint`.
+- `models.TextChoices` gives an enum-like field
+  (`models.CharField(choices=MovementType.choices)`) without hand-writing a
+  tuple-of-tuples — still just a `CharField` with an app-level constraint,
+  not a real Postgres `ENUM` type (that's still an open TODO item for
+  `Order.status`/`PurchaseOrder.status`).
+- `related_name="movements"` on a FK controls the reverse accessor name
+  (`inventory_obj.movements.all()`); without it Django defaults to
+  `<lowercased-model-name>_set`.
+
+## Static files and the daisyUI/Tailwind build
+
+- `django.contrib.staticfiles`'s `AppDirectoriesFinder` only auto-discovers
+  each app's own `static/` dir — a project-root `static/` dir needs
+  `STATICFILES_DIRS = [BASE_DIR / "static"]` in `settings.py`, same
+  reasoning as `TEMPLATES[0]["DIRS"]` for the shared `templates/` dir.
+- Tailwind's CDN ("Play") build doesn't support plugins at all (confirmed
+  when trying to add `@tailwindcss/typography`) — the real install uses a
+  standalone `tailwindcss` binary + daisyUI's `.mjs` bundle, no Node.js
+  needed, compiling a real `output.css` served via `{% static %}`.
+- Gotcha: Tailwind v4's automatic content/class detection uses the
+  **working directory the build command runs from** to find the project
+  root, not just the input CSS file's location. Running the compiler from
+  inside `static/css/` (as the one-time installer script does, since it
+  `cd`s there first) means it never scans `templates/`, `products/`, etc.,
+  so daisyUI/Tailwind classes silently don't get generated. The `Makefile`
+  targets (`css-build`/`css-watch`) run from the repo root specifically to
+  avoid this — always rebuild via `make`, not by cd-ing into `static/css/`.
+- The downloaded `tailwindcss` binary and generated `daisyui.mjs` /
+  `daisyui-theme.mjs` / `output.css` are gitignored build artifacts (like
+  `.venv/`) — `input.css` (the actual source config) is the only tracked
+  file in `static/css/`, regenerated via `make css-install` + `css-build`.
+- Fonts (Geist/Geist Mono) are self-hosted `.woff2` files under
+  `static/fonts/`, wired in via `@font-face` + a Tailwind `@theme` block
+  overriding `--font-sans`/`--font-mono` in `input.css` — same
+  no-CDN-dependency reasoning as the Tailwind/daisyUI switch.
