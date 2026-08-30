@@ -8,10 +8,10 @@ ERD and rationale behind each model.
 - [x] Init `uv` project, add Django/psycopg2/python-dotenv
 - [x] Scaffold Django project (`config/`)
 - [x] Makefile for common dev commands
-- [ ] Wire `settings.py` to Postgres via `docker-compose.yml` env vars
-      (currently still on sqlite3)
-- [ ] `.env` / `.env.example` for `POSTGRES_USER`, `POSTGRES_PASSWORD`,
-      `POSTGRES_DB`, `POSTGRES_PORT`, `SECRET_KEY`
+- [ ] Wire `settings.py` to Supabase Postgres via env vars (currently still
+      on sqlite3)
+- [ ] `.env` / `.env.example` for `DATABASE_URL` (or `POSTGRES_*` split),
+      `SECRET_KEY`
 - [ ] Split settings into base/dev/prod if needed, or keep single file with
       env-driven `DEBUG`/`ALLOWED_HOSTS`
 

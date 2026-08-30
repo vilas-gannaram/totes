@@ -1,10 +1,7 @@
-.PHONY: help install up down logs run migrate makemigrations shell superuser test
+.PHONY: help install run migrate makemigrations shell superuser test
 
 help:
 	@echo "install         install python dependencies via uv"
-	@echo "up              start postgres in the background"
-	@echo "down            stop postgres"
-	@echo "logs            tail postgres logs"
 	@echo "run             run the dev server"
 	@echo "migrate         apply migrations"
 	@echo "makemigrations  generate migrations"
@@ -14,15 +11,6 @@ help:
 
 install:
 	uv sync
-
-up:
-	docker compose up -d
-
-down:
-	docker compose down
-
-logs:
-	docker compose logs -f postgres
 
 run:
 	uv run python manage.py runserver
