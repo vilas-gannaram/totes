@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{% block title %}Totes{% endblock %}</title>
+	</head>
+	<body>
+		<nav>
+			<a href="{% url 'product-list' %}">Products</a>
+			<a href="{% url 'warehouse-list' %}">Warehouses</a>
+		</nav>
+		{% block content %}{% endblock %}
+	</body>
+</html>

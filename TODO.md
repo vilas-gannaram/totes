@@ -43,10 +43,10 @@ ERD and rationale behind each model.
 
 - [x] Use Django templates for SSR (internal-tool style); revisit a CSR
       frontend + DRF API later for any customer-facing UI
-- [ ] Decide: root-level `templates/` dir (shared `base.html`, per-app
-      subfolders) vs. current per-app `templates/<app>/` layout
-- [ ] `base.html` with common layout, convert existing templates to
-      `{% extends %}` it
+- [x] Root-level `templates/` dir for shared `base.html`, kept alongside
+      per-app `templates/<app>/` dirs for per-app content
+- [x] `base.html` with common layout (nav + `{% block content %}`),
+      existing templates converted to `{% extends %}` it
 - [ ] Consider [daisyUI via CDN](https://daisyui.com/docs/cdn/) for styling
       views instead of hand-rolled CSS
 
