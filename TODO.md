@@ -19,7 +19,8 @@ ERD and rationale behind each model.
 
 - [x] `products` — `Product` (sku, name, category, unit_price, reorder_point),
       admin registration, SSR list view + template at `/products/`
-- [ ] `warehouses` — `Warehouse` (name, location_code)
+- [x] `warehouses` — `Warehouse` (name, location_code), admin registration,
+      SSR list view + template at `/warehouses/`
 - [ ] `inventory` — `Inventory` (real FK to product + warehouse, unique
       together, quantity_available/reserved), `StockMovement` audit ledger
 - [ ] `customers` — `Customer` (name, email, phone)
