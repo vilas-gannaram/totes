@@ -78,8 +78,8 @@ UI items below.
       button (needs the purchasing workflow)
 - [x] Placeholder pages for every sidebar link (Customers, Orders,
       Suppliers, Purchasing); replace each with the real page
-- [ ] Product detail page (`/products/<id>/`): per-warehouse stock,
-      movement history; link from inventory rows
+- [x] Product detail page (`/products/<id>/`): per-warehouse stock,
+      movement history; linked from the products and inventory lists
 - [x] Restyle products list: search, category filter, pagination, stock
       totals and status (shared `partials/pagination.html`)
 - [ ] Restyle warehouses list page to match

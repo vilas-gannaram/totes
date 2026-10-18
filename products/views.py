@@ -1,11 +1,15 @@
 from django.core.paginator import Paginator
 from django.db.models import Case, F, Q, Sum, Value, When
 from django.db.models.functions import Coalesce
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
+
+from inventory.models import Inventory, StockMovement
+from inventory.views import with_status
 
 from .models import Product
 
 PAGE_SIZE = 25
+RECENT_MOVEMENTS_LIMIT = 20
 
 
 def product_list(request):
@@ -51,5 +55,40 @@ def product_list(request):
             .values_list("category", flat=True)
             .distinct(),
             "filter_qs": params.urlencode(),
+        },
+    )
+
+
+def product_detail(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+
+    stock = with_status(Inventory.objects.select_related("warehouse")).filter(
+        product=product
+    ).order_by("warehouse__location_code")
+    rows = list(stock)
+
+    total_available = sum(r.quantity_available for r in rows)
+    if total_available == 0:
+        status = "out"
+    elif total_available <= product.reorder_point:
+        status = "low"
+    else:
+        status = "ok"
+
+    movements = StockMovement.objects.filter(inventory__product=product).select_related(
+        "inventory__warehouse"
+    )[:RECENT_MOVEMENTS_LIMIT]
+
+    return render(
+        request,
+        "products/detail.html",
+        {
+            "product": product,
+            "rows": rows,
+            "total_available": total_available,
+            "total_reserved": sum(r.quantity_reserved for r in rows),
+            "stock_value": total_available * product.unit_price,
+            "status": status,
+            "movements": movements,
         },
     )

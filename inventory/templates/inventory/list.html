@@ -75,7 +75,7 @@
 									{{ row.product.name|slice:":2"|upper }}
 								</div>
 								<div class="flex flex-col">
-									<span class="font-medium">{{ row.product.name }}</span>
+									<a href="{% url 'product-detail' row.product.pk %}" class="font-medium hover:underline">{{ row.product.name }}</a>
 									<span class="text-base-content/60 font-mono text-xs">{{ row.product.sku }}</span>
 								</div>
 							</div>

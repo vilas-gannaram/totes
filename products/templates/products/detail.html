@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+	<a href="{% url 'product-list' %}" class="link link-hover text-base-content/60 mb-3 inline-block text-sm">← Products</a>
+
+	<header class="mb-5 flex flex-wrap items-start justify-between gap-3">
+		<div>
+			<h1 class="text-3xl font-bold tracking-tight">{{ product.name }}</h1>
+			<p class="text-base-content/60">
+				<span class="font-mono">{{ product.sku }}</span>
+				{% if product.category %}· {{ product.category }}{% endif %}
+			</p>
+		</div>
+		{% if status == "out" %}
+		<span class="badge badge-soft badge-error">Out of stock</span>
+		{% elif status == "low" %}
+		<span class="badge badge-soft badge-warning">Low</span>
+		{% else %}
+		<span class="badge badge-soft badge-success">In stock</span>
+		{% endif %}
+	</header>
+
+	<section aria-label="Key figures" class="mb-6 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Available</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">{{ total_available }}</span>
+			<span class="text-base-content/60 text-sm">Reorder at {{ product.reorder_point }}</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Reserved</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">{{ total_reserved }}</span>
+			<span class="text-base-content/60 text-sm">Promised to orders</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Unit price</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">${{ product.unit_price }}</span>
+			<span class="text-base-content/60 text-sm">Current price</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Stock value</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">${{ stock_value|floatformat:"2g" }}</span>
+			<span class="text-base-content/60 text-sm">Available × unit price</span>
+		</div>
+	</section>
+
+	<div class="flex flex-col gap-6">
+		<section aria-labelledby="stock-h" class="bg-base-100 border-base-300 rounded-box overflow-hidden border">
+			<div class="border-base-300 border-b px-5 py-4">
+				<h2 id="stock-h" class="font-semibold">Stock by warehouse</h2>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+							<th>Warehouse</th>
+							<th class="text-right">Available</th>
+							<th class="text-right">Reserved</th>
+							<th>Status</th>
+							<th>Updated</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for row in rows %}
+						<tr>
+							<td>
+								<div class="flex flex-col">
+									<span class="font-medium">{{ row.warehouse.name }}</span>
+									<span class="text-base-content/60 font-mono text-xs">{{ row.warehouse.location_code }}</span>
+								</div>
+							</td>
+							<td class="text-right font-mono font-medium">{{ row.quantity_available }}</td>
+							<td class="text-base-content/60 text-right font-mono">{{ row.quantity_reserved }}</td>
+							<td>
+								{% if row.status == "out" %}
+								<span class="badge badge-soft badge-error">Out of stock</span>
+								{% elif row.status == "low" %}
+								<span class="badge badge-soft badge-warning">Low</span>
+								{% else %}
+								<span class="badge badge-soft badge-success">In stock</span>
+								{% endif %}
+							</td>
+							<td class="text-base-content/60">{{ row.updated_at|date:"d M Y, H:i" }}</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="5" class="text-base-content/60 text-center">Not stocked in any warehouse yet.</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<section aria-labelledby="mov-h" class="bg-base-100 border-base-300 rounded-box overflow-hidden border">
+			<div class="border-base-300 border-b px-5 py-4">
+				<h2 id="mov-h" class="font-semibold">Recent movements</h2>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+							<th>When</th>
+							<th>Type</th>
+							<th>Warehouse</th>
+							<th>Source</th>
+							<th class="text-right">Change</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for m in movements %}
+						<tr>
+							<td class="text-base-content/60">{{ m.created_at|date:"d M Y, H:i" }}</td>
+							<td>{{ m.get_movement_type_display }}</td>
+							<td>{{ m.inventory.warehouse.name }}</td>
+							<td class="text-base-content/60">{{ m.get_reference_type_display }}</td>
+							<td class="text-right font-mono font-medium">{{ m.quantity_delta|stringformat:"+d" }}</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="5" class="text-base-content/60 text-center">No movements yet.</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</div>
+{% endblock %}

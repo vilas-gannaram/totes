@@ -52,7 +52,7 @@
 									{{ product.name|slice:":2"|upper }}
 								</div>
 								<div class="flex flex-col">
-									<span class="font-medium">{{ product.name }}</span>
+									<a href="{% url 'product-detail' product.pk %}" class="font-medium hover:underline">{{ product.name }}</a>
 									<span class="text-base-content/60 font-mono text-xs">{{ product.sku }}</span>
 								</div>
 							</div>
