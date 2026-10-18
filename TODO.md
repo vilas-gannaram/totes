@@ -27,8 +27,9 @@ UI items below.
       admin registration, SSR list view + template at `/inventory/`
 - [x] `customers` — `Customer` (name, email, optional phone), admin
       registration
-- [ ] `orders` — `Order` (status enum, total_amount), `OrderItem`
-      (unit_price_at_order, unique with order+product)
+- [x] `orders` — `Order` (status choices, total_amount), `OrderItem`
+      (unit_price_at_order, unique with order+product), admin with items
+      inline
 - [x] `suppliers` — `Supplier` (name, email, optional phone; email not
       unique), admin registration
 - [ ] `purchasing` — `PurchaseOrder` (status enum, warehouse, expected_at),
@@ -37,12 +38,13 @@ UI items below.
 ## Schema constraints
 
 - [x] Real FK from `Inventory.warehouse` → `Warehouse`
-- [ ] Real FK from `Order.customer` → `Customer`
-- [ ] DB-level enum/choices for `Order.status` and `PurchaseOrder.status`
+- [x] Real FK from `Order.customer` → `Customer`
+- [x] Choices for `Order.status` (`TextChoices`)
+- [ ] Choices for `PurchaseOrder.status`
 - [x] Unique constraint on `(product_id, warehouse_id)` in `Inventory`
 - [x] Quantity check constraints (`quantity_available >= 0`, etc.) on
       `Inventory`
-- [ ] `updated_at` timestamp on `Order` (`Product` and `Inventory` have it)
+- [x] `updated_at` timestamp on `Order` (`Product` and `Inventory` have it)
 
 ## Frontend
 

@@ -124,11 +124,11 @@ audits (`StockMovement` with `Inventory`).
 | `warehouses` | `Warehouse`                          | built  |
 | `inventory`  | `Inventory`, `StockMovement`         | built  |
 | `customers`  | `Customer`                           | built  |
-| `orders`     | `Order`, `OrderItem`                 | todo   |
+| `orders`     | `Order`, `OrderItem`                 | built  |
 | `suppliers`  | `Supplier`                           | built  |
 | `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | todo   |
 
-That is 6 of 10 models built, across 5 of 7 apps.
+That is 8 of 10 models built, across 6 of 7 apps.
 
 Dependencies between apps:
 
@@ -161,7 +161,7 @@ Dependencies between apps:
   `PurchaseOrderItem` mirrors the outbound `Order` / `OrderItem` shape, so
   there is a way to represent how inventory gets replenished.
 - **Changes are traceable.** `updated_at` is on `Product` and `Inventory`
-  (built) and `Order` (todo).
+  (built) and `Order` (built).
 - **Low-stock hook.** `Product.reorder_point` is the threshold for
   low-stock alerts.
 
@@ -191,8 +191,8 @@ Staff work in one warehouse and care about what is physically on the shelf.
 
 ### Sales and fulfilment: orders from placement to shipment
 
-This follows one customer order through `Order.status`. _(todo: `customers`
-and `orders`)_
+This follows one customer order through `Order.status`. _(models built;
+placing an order, reserving stock and status transitions are still todo)_
 
 1. A `Customer` places an `Order` (`PENDING`) with one `OrderItem` per
    product. Each item copies `Product.unit_price` into `unit_price_at_order`,
@@ -214,7 +214,7 @@ Status changes are checked on the server, so an order can't jump from
 ### Purchasing: keeping shelves stocked
 
 The purchasing role works from what is running low rather than from what has
-arrived. _(todo: `suppliers` and `purchasing`, plus the alerting feature)_
+arrived. _(todo: `purchasing`, plus the alerting feature)_
 
 1. They look for products where total available stock across warehouses has
    fallen to `Product.reorder_point` or below.
