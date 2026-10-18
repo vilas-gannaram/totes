@@ -29,7 +29,8 @@ UI items below.
       registration
 - [ ] `orders` — `Order` (status enum, total_amount), `OrderItem`
       (unit_price_at_order, unique with order+product)
-- [ ] `suppliers` — `Supplier` (name, email, phone)
+- [x] `suppliers` — `Supplier` (name, email, optional phone; email not
+      unique), admin registration
 - [ ] `purchasing` — `PurchaseOrder` (status enum, warehouse, expected_at),
       `PurchaseOrderItem` (quantity_ordered/received, unit_cost)
 

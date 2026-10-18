@@ -123,12 +123,12 @@ audits (`StockMovement` with `Inventory`).
 | `products`   | `Product`                            | built  |
 | `warehouses` | `Warehouse`                          | built  |
 | `inventory`  | `Inventory`, `StockMovement`         | built  |
-| `customers`  | `Customer`                           | todo   |
+| `customers`  | `Customer`                           | built  |
 | `orders`     | `Order`, `OrderItem`                 | todo   |
-| `suppliers`  | `Supplier`                           | todo   |
+| `suppliers`  | `Supplier`                           | built  |
 | `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | todo   |
 
-That is 4 of 10 models built, across 3 of 7 apps.
+That is 6 of 10 models built, across 5 of 7 apps.
 
 Dependencies between apps:
 
