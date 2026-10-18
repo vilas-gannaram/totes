@@ -10,7 +10,7 @@ Inventory management system, built with Django.
   local development
 - Server-rendered templates (Django templates)
 - [daisyUI](https://daisyui.com/docs/install/django/) + Tailwind CSS
-  (standalone binary, no Node.js) and self-hosted Geist/Geist Mono fonts
+  (standalone binary, no Node.js) and self-hosted Manrope/Geist Mono fonts
   for styling
 
 ## Getting started
@@ -41,7 +41,7 @@ products/     product catalog app
 warehouses/   warehouse app
 inventory/    stock levels + movement ledger app
 templates/    shared base.html (root-level, per app-dirs live in <app>/templates/<app>/)
-static/       css/ (Tailwind + daisyUI build), fonts/ (Geist, self-hosted)
+static/       css/ (Tailwind + daisyUI build), fonts/ (Manrope + Geist Mono, self-hosted)
 manage.py     Django's CLI entrypoint
 ```
 

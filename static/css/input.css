@@ -3,12 +3,43 @@
 @source not "./tailwindcss";
 @source not "./daisyui{,*}.mjs";
 
-@plugin "./daisyui.mjs";
+@plugin "./daisyui.mjs" {
+	themes: false;
+}
+
+@plugin "./daisyui-theme.mjs" {
+	name: "depot";
+	default: true;
+	color-scheme: light;
+	--color-base-100: #ffffff;
+	--color-base-200: #f3f4f1;
+	--color-base-300: #dde0da;
+	--color-base-content: #17191c;
+	--color-primary: #c2410c;
+	--color-primary-content: #ffffff;
+	--color-secondary: #17191c;
+	--color-secondary-content: #ffffff;
+	--color-accent: #1d4e89;
+	--color-accent-content: #ffffff;
+	--color-neutral: #17191c;
+	--color-neutral-content: #c9cdd2;
+	--color-info: #1d4e89;
+	--color-info-content: #ffffff;
+	--color-success: #1f6b3a;
+	--color-success-content: #ffffff;
+	--color-warning: #9a3b0a;
+	--color-warning-content: #ffffff;
+	--color-error: #9b1c1c;
+	--color-error-content: #ffffff;
+	--radius-selector: 1rem;
+	--radius-field: 0.5rem;
+	--radius-box: 0.625rem;
+}
 
 @font-face {
-	font-family: "Geist";
-	src: url("../fonts/Geist-Variable.woff2") format("woff2");
-	font-weight: 100 900;
+	font-family: "Manrope";
+	src: url("../fonts/Manrope-Variable.woff2") format("woff2");
+	font-weight: 200 800;
 	font-display: swap;
 }
 
@@ -20,6 +51,10 @@
 }
 
 @theme {
-	--font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+	--font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
 	--font-mono: "Geist Mono", ui-monospace, monospace;
+	--color-sidebar: #17191c;
+	--color-sidebar-active: #2a2d31;
+	--color-sidebar-border: #2e3236;
+	--color-sidebar-muted: #9ba1a8;
 }

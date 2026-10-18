@@ -166,7 +166,7 @@ models can back both an SSR admin-style UI and a JSON API later.
   `daisyui-theme.mjs` / `output.css` are gitignored build artifacts (like
   `.venv/`) — `input.css` (the actual source config) is the only tracked
   file in `static/css/`, regenerated via `make css-install` + `css-build`.
-- Fonts (Geist/Geist Mono) are self-hosted `.woff2` files under
+- Fonts (Manrope/Geist Mono) are self-hosted `.woff2` files under
   `static/fonts/`, wired in via `@font-face` + a Tailwind `@theme` block
   overriding `--font-sans`/`--font-mono` in `input.css` — same
   no-CDN-dependency reasoning as the Tailwind/daisyUI switch.

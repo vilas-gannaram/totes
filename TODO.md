@@ -52,7 +52,7 @@ rationale behind each model.
 - [x] Use [daisyUI](https://daisyui.com/docs/install/django/) (standalone
       `tailwindcss` binary + `.mjs` bundle, no Node.js) for styling views
       instead of hand-rolled CSS
-- [x] Self-host Geist / Geist Mono (`static/fonts/`) as `--font-sans` /
+- [x] Self-host Manrope / Geist Mono (`static/fonts/`) as `--font-sans` /
       `--font-mono`, instead of a font CDN
 
 ## Features
