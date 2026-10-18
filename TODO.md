@@ -100,11 +100,13 @@ UI items below.
 
 - [ ] `Inventory` `verbose_name_plural = "inventory"` (admin shows
       "Inventorys")
-- [ ] `list_select_related` on `InventoryAdmin` and `StockMovementAdmin`
-- [ ] `search_fields` on `InventoryAdmin` and `StockMovementAdmin`
-- [ ] Make the `StockMovement` admin read-only (append-only ledger)
+- [x] `list_select_related` on `InventoryAdmin` and `StockMovementAdmin`
+- [x] `search_fields` on `InventoryAdmin` and `StockMovementAdmin`
+- [x] Make the `StockMovement` admin add-only (no change/delete)
 - [ ] Default `Meta.ordering` on `Product`, `Warehouse`, `Customer`,
       `StockMovement`
+- [ ] Admin add of `StockMovement` doesn't update the `Inventory` counter;
+      route adjustments through code that writes both together
 - [ ] `unit_price >= 0` check constraint on `Product`
 - [ ] Tests for `products` and `warehouses` (inventory list view is covered)
 - [ ] Consider a `Category` model instead of free-text `Product.category`
