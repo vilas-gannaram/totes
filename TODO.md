@@ -32,15 +32,16 @@ UI items below.
       inline
 - [x] `suppliers` — `Supplier` (name, email, optional phone; email not
       unique), admin registration
-- [ ] `purchasing` — `PurchaseOrder` (status enum, warehouse, expected_at),
-      `PurchaseOrderItem` (quantity_ordered/received, unit_cost)
+- [x] `purchasing` — `PurchaseOrder` (status choices, supplier, warehouse,
+      optional expected_at), `PurchaseOrderItem` (quantity_ordered/received,
+      unit_cost, unique with purchase_order+product), admin with items inline
 
 ## Schema constraints
 
 - [x] Real FK from `Inventory.warehouse` → `Warehouse`
 - [x] Real FK from `Order.customer` → `Customer`
 - [x] Choices for `Order.status` (`TextChoices`)
-- [ ] Choices for `PurchaseOrder.status`
+- [x] Choices for `PurchaseOrder.status` (`TextChoices`)
 - [x] Unique constraint on `(product_id, warehouse_id)` in `Inventory`
 - [x] Quantity check constraints (`quantity_available >= 0`, etc.) on
       `Inventory`

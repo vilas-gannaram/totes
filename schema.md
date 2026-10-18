@@ -126,9 +126,10 @@ audits (`StockMovement` with `Inventory`).
 | `customers`  | `Customer`                           | built  |
 | `orders`     | `Order`, `OrderItem`                 | built  |
 | `suppliers`  | `Supplier`                           | built  |
-| `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | todo   |
+| `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | built  |
 
-That is 8 of 10 models built, across 6 of 7 apps.
+That is all 10 models built, across all 7 apps. The remaining work is
+business logic and UI (see `TODO.md`).
 
 Dependencies between apps:
 
@@ -180,7 +181,7 @@ Staff work in one warehouse and care about what is physically on the shelf.
    `quantity_reserved` (promised to orders, still on the shelf).
 2. A delivery arrives. They match it to a `PurchaseOrder` marked `ORDERED`
    and enter how much of each `PurchaseOrderItem` actually arrived, which
-   updates `quantity_received`. _(todo: `purchasing`)_
+   updates `quantity_received`. _(models built; the receiving flow is still todo)_
 3. Receiving adds to `quantity_available` and writes a `RECEIPT`
    `StockMovement` with `reference_type = PURCHASE_ORDER`. If the product has
    no `Inventory` row in that warehouse yet, one is created first.
@@ -214,7 +215,7 @@ Status changes are checked on the server, so an order can't jump from
 ### Purchasing: keeping shelves stocked
 
 The purchasing role works from what is running low rather than from what has
-arrived. _(todo: `purchasing`, plus the alerting feature)_
+arrived. _(models built; the reorder alerting and PO workflow are still todo)_
 
 1. They look for products where total available stock across warehouses has
    fallen to `Product.reorder_point` or below.
