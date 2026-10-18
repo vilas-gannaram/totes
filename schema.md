@@ -1,72 +1,12 @@
-# Totes — Current Data Schema
+# Totes — Data Schema
 
-Reflects `backend/app/modules/*/models.py` as of the latest commit. This is
-the schema _as implemented_, including the gaps called out at the bottom.
+This document describes the data model, which models are built, how the
+models are grouped into Django apps, and how people move through the system.
 
-```mermaid
-erDiagram
-    PRODUCTS {
-        uuid id PK
-        string sku UK
-        string name
-        datetime created_at
-    }
+Models marked **built** exist in the Django code today. Models marked
+**todo** are part of the model but not yet implemented (see `TODO.md`).
 
-    WAREHOUSES {
-        uuid id PK
-        string name
-        string location_code UK
-    }
-
-    INVENTORY {
-        uuid id PK
-        uuid product_id FK
-        string warehouse_id "not a real FK"
-        int quantity_available
-        int quantity_reserved
-    }
-
-    ORDERS {
-        uuid id PK
-        string customer_id "not a real FK"
-        string status
-        datetime created_at
-    }
-
-    ORDER_ITEMS {
-        uuid id PK
-        uuid order_id FK
-        uuid product_id FK
-        int quantity
-    }
-
-    PRODUCTS ||--o{ INVENTORY : "stock_levels"
-    PRODUCTS ||--o{ ORDER_ITEMS : "ordered as"
-    ORDERS ||--o{ ORDER_ITEMS : "items"
-    WAREHOUSES ||--o{ INVENTORY : "holds (unwired)"
-```
-
-## Notes / known gaps
-
-- `Inventory.warehouse_id` is a plain `String`, **not** a foreign key to
-  `warehouses.id` — the dotted relationship above isn't enforced in the
-  database today.
-- `Orders.customer_id` is a plain `String` — there's no `Customer` table.
-- `Order.status` is free text (`PENDING`/`PAID`/`SHIPPED`/`CANCELLED` by
-  convention only, not a DB-level enum/check constraint).
-- No unique constraint on `(product_id, warehouse_id)` in `inventory`, so
-  duplicate stock rows for the same product/warehouse are possible.
-- No quantity check constraints (e.g. `quantity_available >= 0`).
-- No `unit_price` on `OrderItem`, and no price field on `Product` at all.
-- No `updated_at` timestamps on `Inventory` or `Order`.
-
----
-
-# Proposed Schema (Enhanced)
-
-Fixes every gap above, and adds the pieces a real IMS needs: customers,
-suppliers, purchase orders (inbound stock), and a stock-movement ledger so
-inventory changes are auditable instead of just an overwritten counter.
+## Schema
 
 ```mermaid
 erDiagram
@@ -90,12 +30,11 @@ erDiagram
 
     INVENTORY {
         uuid id PK
-        uuid product_id FK
-        uuid warehouse_id FK
-        int quantity_available
-        int quantity_reserved
+        uuid product_id FK "unique with warehouse_id"
+        uuid warehouse_id FK "unique with product_id"
+        int quantity_available "check >= 0"
+        int quantity_reserved "check >= 0"
         datetime updated_at
-        "unique (product_id, warehouse_id)"
     }
 
     STOCK_MOVEMENTS {
@@ -104,7 +43,7 @@ erDiagram
         enum movement_type "RECEIPT, RESERVE, RELEASE, SHIP, ADJUST"
         int quantity_delta
         string reference_type "ORDER, PURCHASE_ORDER, MANUAL"
-        uuid reference_id
+        uuid reference_id "nullable, no FK"
         datetime created_at
     }
 
@@ -127,11 +66,10 @@ erDiagram
 
     ORDER_ITEMS {
         uuid id PK
-        uuid order_id FK
-        uuid product_id FK
+        uuid order_id FK "unique with product_id"
+        uuid product_id FK "unique with order_id"
         int quantity
         numeric unit_price_at_order
-        "unique (order_id, product_id)"
     }
 
     SUPPLIERS {
@@ -174,27 +112,156 @@ erDiagram
     PRODUCTS ||--o{ PURCHASE_ORDER_ITEMS : "restocks"
 ```
 
-## What changed vs. the current schema
+## Apps and build status
 
-- **`Inventory.warehouse_id` is a real FK** to `warehouses.id`, with a unique
-  constraint on `(product_id, warehouse_id)` so stock can't fork into
-  duplicate rows.
-- **`Customer` is a real table**, referenced by `Orders.customer_id` — no
-  more free-text customer identifiers.
-- **`Order.status` and `PurchaseOrder.status` become DB-level enums**
-  instead of unchecked strings.
-- **`StockMovements`** gives an append-only audit ledger for every quantity
-  change (receipt, reservation, shipment, manual adjustment), so
-  `quantity_available`/`quantity_reserved` are derived/verifiable instead of
-  the only source of truth.
-- **Pricing is modeled**: `Product.unit_price` as the current price, and
-  `OrderItem.unit_price_at_order` to freeze the price actually charged so
-  later price changes don't rewrite history.
-- **Inbound stock is modeled** via `Supplier` → `PurchaseOrder` →
-  `PurchaseOrderItem`, mirroring the existing `Order`/`OrderItem` shape for
-  outbound stock — without it there's no way to represent how inventory
-  ever gets replenished.
-- **`updated_at` timestamps** added to `Inventory`, `Orders`, and `Products`
-  so changes are traceable.
-- **`reorder_point`** on `Product` gives a hook for low-stock alerts, a
-  standard IMS feature that's currently absent entirely.
+Each domain concept is its own Django app. A parent and its line items live
+together (`Order` + `OrderItem`), and the ledger lives with the thing it
+audits (`StockMovement` with `Inventory`).
+
+| App          | Models                               | Status |
+| ------------ | ------------------------------------ | ------ |
+| `products`   | `Product`                            | built  |
+| `warehouses` | `Warehouse`                          | built  |
+| `inventory`  | `Inventory`, `StockMovement`         | built  |
+| `customers`  | `Customer`                           | todo   |
+| `orders`     | `Order`, `OrderItem`                 | todo   |
+| `suppliers`  | `Supplier`                           | todo   |
+| `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | todo   |
+
+That is 4 of 10 models built, across 3 of 7 apps.
+
+Dependencies between apps:
+
+- `orders` depends on `customers` and `products`.
+- `purchasing` depends on `suppliers`, `warehouses` and `products`.
+- `inventory` depends only on `products` and `warehouses`. `StockMovement`
+  points at its source (an order, a purchase order, or a manual change)
+  through the plain `reference_type` / `reference_id` columns instead of a
+  foreign key. This keeps `inventory` independent of the order apps, so both
+  order flows can write to the ledger without a circular dependency.
+
+## Design decisions
+
+- **Real foreign keys.** Relationships between models are enforced in the
+  database, including `Inventory.warehouse` and `Order.customer`.
+- **No duplicate stock rows.** `Inventory` is unique on
+  `(product, warehouse)`, so stock for one product in one warehouse lives in
+  one row.
+- **Quantities can't go negative.** Check constraints on both quantity
+  columns enforce this in the database, not just in application code.
+- **Status fields are enums.** `Order.status` and `PurchaseOrder.status`
+  are restricted to a fixed set of values.
+- **Stock changes are auditable.** `StockMovement` is an append-only ledger.
+  Every change to `quantity_available` or `quantity_reserved` should have a
+  matching row, so the counters can be checked against history.
+- **Prices are frozen.** `Product.unit_price` is the current price.
+  `OrderItem.unit_price_at_order` records what was actually charged, so a
+  later price change doesn't rewrite past orders.
+- **Inbound stock is modeled.** `Supplier` → `PurchaseOrder` →
+  `PurchaseOrderItem` mirrors the outbound `Order` / `OrderItem` shape, so
+  there is a way to represent how inventory gets replenished.
+- **Changes are traceable.** `updated_at` is on `Product` and `Inventory`
+  (built) and `Order` (todo).
+- **Low-stock hook.** `Product.reorder_point` is the threshold for
+  low-stock alerts.
+
+## Journeys
+
+The same data looks different depending on who is using it. Each journey
+below follows one role through the models. Steps that depend on todo apps are
+marked.
+
+### Warehouse staff: receiving and adjusting stock
+
+Staff work in one warehouse and care about what is physically on the shelf.
+
+1. They open `/inventory/` and find the `Inventory` row for a product in
+   their warehouse. Each row shows `quantity_available` (free to sell) and
+   `quantity_reserved` (promised to orders, still on the shelf).
+2. A delivery arrives. They match it to a `PurchaseOrder` marked `ORDERED`
+   and enter how much of each `PurchaseOrderItem` actually arrived, which
+   updates `quantity_received`. _(todo: `purchasing`)_
+3. Receiving adds to `quantity_available` and writes a `RECEIPT`
+   `StockMovement` with `reference_type = PURCHASE_ORDER`. If the product has
+   no `Inventory` row in that warehouse yet, one is created first.
+4. When a physical count disagrees with the system, they make a manual
+   correction. It writes an `ADJUST` movement with `reference_type = MANUAL`
+   and a signed `quantity_delta`, so the correction and its size stay on
+   record.
+
+### Sales and fulfilment: orders from placement to shipment
+
+This follows one customer order through `Order.status`. _(todo: `customers`
+and `orders`)_
+
+1. A `Customer` places an `Order` (`PENDING`) with one `OrderItem` per
+   product. Each item copies `Product.unit_price` into `unit_price_at_order`,
+   and `Order.total_amount` is the sum.
+2. The system reserves stock. For each item it moves quantity from
+   `quantity_available` to `quantity_reserved` on an `Inventory` row that has
+   enough, and writes a `RESERVE` movement referencing the order. If no
+   warehouse has enough, the order cannot be placed.
+3. Payment moves the order to `PAID`.
+4. Staff pick and ship. Shipping reduces `quantity_reserved` and writes a
+   `SHIP` movement. The order moves to `SHIPPED`.
+5. If the order is cancelled before shipping, a `RELEASE` movement returns the
+   reserved quantity to `quantity_available` and the order becomes
+   `CANCELLED`.
+
+Status changes are checked on the server, so an order can't jump from
+`CANCELLED` to `SHIPPED`.
+
+### Purchasing: keeping shelves stocked
+
+The purchasing role works from what is running low rather than from what has
+arrived. _(todo: `suppliers` and `purchasing`, plus the alerting feature)_
+
+1. They look for products where total available stock across warehouses has
+   fallen to `Product.reorder_point` or below.
+2. For each one they pick a `Supplier` and create a `PurchaseOrder` in
+   `DRAFT` for a target `Warehouse`, with one `PurchaseOrderItem` per product
+   giving `quantity_ordered` and `unit_cost`.
+3. Sending it to the supplier moves it to `ORDERED`, with an `expected_at`
+   date.
+4. As the delivery is received (see the warehouse journey), items fill in
+   `quantity_received`. When everything is in, the order becomes `RECEIVED`.
+   An order that is called off becomes `CANCELLED`.
+
+### Catalog and setup: defining what exists
+
+Before anything moves, someone has to describe the products and places.
+
+1. They add `Product` records with a unique `sku`, a `category`, a
+   `unit_price` and a `reorder_point` (`/products/`, or the admin).
+2. They add `Warehouse` records with a unique `location_code`
+   (`/warehouses/`, or the admin).
+3. Creating an `Inventory` row for a product in a warehouse starts tracking
+   stock there. The unique constraint means this can only be done once per
+   pair.
+
+All of this is available today in the Django admin, and the list pages are
+read-only views of the same data.
+
+### Management and audit: asking what happened
+
+This role reads history instead of changing it.
+
+- **Why is this number what it is?** Open an `Inventory` row and read its
+  `movements` in time order. Summing `quantity_delta` should explain the
+  current counters.
+- **What did this order do to stock?** Filter `StockMovement` by
+  `reference_type = ORDER` and the order's id.
+- **Where did this delivery go?** Filter by `reference_type = PURCHASE_ORDER`
+  and the purchase order's id.
+- **What did we charge, versus what is the price today?** Compare
+  `OrderItem.unit_price_at_order` with `Product.unit_price`.
+
+The ledger is append-only, so these answers don't change after the fact. A
+mistake is fixed by writing a new `ADJUST` row, not by editing an old one.
+
+### Current limitation
+
+Nothing writes `StockMovement` rows yet. The model exists and is registered
+in the admin, but inventory changes are still made directly on the counters.
+Until the ledger is written on every change, the audit journey above is
+possible only for rows entered by hand.

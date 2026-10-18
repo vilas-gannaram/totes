@@ -5,9 +5,8 @@ apply the same way to every future app (`warehouses`, `inventory`, etc.).
 
 ## Apps
 
-A Django "app" is the unit that maps to what the old FastAPI backend called
-a "module" — a self-contained slice of a domain with its own models, admin
-registration, views, and migrations.
+A Django "app" is a self-contained slice of a domain with its own models,
+admin registration, views, and migrations.
 
 - `uv run python manage.py startapp <name>` scaffolds the folder
   (`models.py`, `admin.py`, `views.py`, `apps.py`, `migrations/`).

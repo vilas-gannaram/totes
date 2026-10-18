@@ -1,7 +1,7 @@
 # TODO
 
-Roadmap for the Django rewrite of Totes (IMS). See `schema.md` for the full
-ERD and rationale behind each model.
+Build roadmap for Totes (IMS). See `schema.md` for the full ERD and
+rationale behind each model.
 
 ## Foundation
 
@@ -31,15 +31,15 @@ ERD and rationale behind each model.
 - [ ] `purchasing` — `PurchaseOrder` (status enum, warehouse, expected_at),
       `PurchaseOrderItem` (quantity_ordered/received, unit_cost)
 
-## Schema fixes carried over from the old backend
+## Schema constraints
 
-- [x] Real FK from `Inventory.warehouse_id` → `Warehouse` (was a plain string)
-- [ ] Real FK from `Order.customer_id` → `Customer` (was a plain string)
+- [x] Real FK from `Inventory.warehouse` → `Warehouse`
+- [ ] Real FK from `Order.customer` → `Customer`
 - [ ] DB-level enum/choices for `Order.status` and `PurchaseOrder.status`
 - [x] Unique constraint on `(product_id, warehouse_id)` in `Inventory`
 - [x] Quantity check constraints (`quantity_available >= 0`, etc.) on
       `Inventory`
-- [ ] `updated_at` timestamps on `Order`, `Product` (`Inventory` has it)
+- [ ] `updated_at` timestamp on `Order` (`Product` and `Inventory` have it)
 
 ## Frontend
 
@@ -67,7 +67,6 @@ ERD and rationale behind each model.
 - [ ] Purchase order lifecycle: draft → ordered → received, receiving
       increments inventory via `StockMovement`
 - [ ] API layer (DRF or plain views — TBD) for the above
-- [ ] Migrate/replace any FastAPI endpoints still referenced elsewhere
 
 ## Later / not yet scoped
 

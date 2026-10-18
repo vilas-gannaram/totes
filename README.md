@@ -52,5 +52,5 @@ See `make help` for the full list (`migrate`, `makemigrations`, `shell`,
 
 ## Docs
 
-- `schema.md` — current and proposed data model (ERDs)
+- `schema.md` — data model (ERD), app grouping, and user journeys
 - `TODO.md` — build roadmap
