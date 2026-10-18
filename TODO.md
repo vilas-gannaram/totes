@@ -1,7 +1,8 @@
 # TODO
 
 Build roadmap for Totes (IMS). See `schema.md` for the full ERD and
-rationale behind each model.
+rationale behind each model. `AUDIT.md` has the detail behind the audit and
+UI items below.
 
 ## Foundation
 
@@ -24,7 +25,8 @@ rationale behind each model.
 - [x] `inventory` — `Inventory` (real FK to product + warehouse, unique
       together, quantity_available/reserved), `StockMovement` audit ledger,
       admin registration, SSR list view + template at `/inventory/`
-- [ ] `customers` — `Customer` (name, email, phone)
+- [x] `customers` — `Customer` (name, email, optional phone), admin
+      registration
 - [ ] `orders` — `Order` (status enum, total_amount), `OrderItem`
       (unit_price_at_order, unique with order+product)
 - [ ] `suppliers` — `Supplier` (name, email, phone)
@@ -71,26 +73,45 @@ rationale behind each model.
 - [ ] Product detail page (`/products/<id>/`): per-warehouse stock,
       movement history; link from inventory rows
 - [ ] Restyle products and warehouses list pages to match
-- [ ] Nav entries for Purchase orders / Shipments / Suppliers / Reports once
-      those apps exist; dashboard "Open purchase orders" card depends on
-      `purchasing`
+- [ ] Nav entries for Customers / Orders / Suppliers / Purchasing as each
+      app gets its pages (Shipments and Reports are in the design but not
+      scoped); dashboard "Open purchase orders" card depends on `purchasing`
+- [ ] List/detail pages for the new apps (see `AUDIT.md` §3): customers,
+      orders (list, detail, new), suppliers, purchase orders (list, detail)
+- [ ] Decide the design's action buttons: New product, Reorder, Export CSV,
+      Scan barcode (build or drop each)
+- [ ] `ModelForm`s for create/edit, plus flash messages
 - [ ] Mobile pass: sidebar collapse, tables scroll in a box
 
 ## Features
 
-- [ ] Django admin registration for all models (fast internal CRUD)
+- [ ] Admin registration for every new model (fast internal CRUD)
 - [ ] Stock movement ledger: every inventory change writes a
       `StockMovement` row (receipt, reserve, release, ship, adjust) instead
       of just overwriting the counter
-- [ ] Low-stock alerting off `Product.reorder_point`
+- [ ] Low-stock "Needs reorder" panel on the dashboard (status logic
+      already in `inventory.views.with_status`)
 - [ ] Order lifecycle: place → reserve stock → pay → ship, with status
       transitions validated server-side
 - [ ] Purchase order lifecycle: draft → ordered → received, receiving
       increments inventory via `StockMovement`
-- [ ] API layer (DRF or plain views — TBD) for the above
+
+## Audit fixes (see `AUDIT.md` §1)
+
+- [ ] `Inventory` `verbose_name_plural = "inventory"` (admin shows
+      "Inventorys")
+- [ ] `list_select_related` on `InventoryAdmin` and `StockMovementAdmin`
+- [ ] `search_fields` on `InventoryAdmin` and `StockMovementAdmin`
+- [ ] Make the `StockMovement` admin read-only (append-only ledger)
+- [ ] Default `Meta.ordering` on `Product`, `Warehouse`, `Customer`,
+      `StockMovement`
+- [ ] `unit_price >= 0` check constraint on `Product`
+- [ ] Tests for `products` and `warehouses` (inventory list view is covered)
+- [ ] Consider a `Category` model instead of free-text `Product.category`
 
 ## Later / not yet scoped
 
+- [ ] API layer (DRF or plain views) if anything outside the web UI needs it
 - [ ] Auth / permissions model (who can adjust stock, approve POs, etc.)
 - [ ] Tests for model constraints and order/PO state transitions
 - [ ] Deployment (prod WSGI/ASGI server — dev server warns it's not for
