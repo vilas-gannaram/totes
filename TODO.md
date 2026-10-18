@@ -55,6 +55,27 @@ rationale behind each model.
 - [x] Self-host Manrope / Geist Mono (`static/fonts/`) as `--font-sans` /
       `--font-mono`, instead of a font CDN
 
+### UI redesign (from the Claude design: Dashboard, Inventory, Product detail)
+
+- [x] Custom light daisyUI theme (`depot`) + dark sidebar layout in
+      `base.html`, active nav state via `request.resolver_match`
+- [ ] Inventory list restyle: status tabs (All / In stock / Low / Out),
+      search, category + warehouse filters as `?status=&q=&category=&warehouse=`
+      query params handled in the view, `Paginator`, status badges,
+      `font-mono` on SKU/quantity/money columns
+- [ ] Derive stock status (in stock / low / out) from `quantity_available`
+      vs `Product.reorder_point`; decide on "Unit cost" vs `unit_price`
+- [ ] Dashboard page (`/`): KPI cards (SKUs, stock value, low stock, out of
+      stock), "Needs reorder" table, stock value by category, recent
+      `StockMovement` list; add nav link
+- [ ] Product detail page (`/products/<id>/`): per-warehouse stock,
+      movement history; link from inventory rows
+- [ ] Restyle products and warehouses list pages to match
+- [ ] Nav entries for Purchase orders / Shipments / Suppliers / Reports once
+      those apps exist; dashboard "Open purchase orders" card depends on
+      `purchasing`
+- [ ] Mobile pass: sidebar collapse, tables scroll in a box
+
 ## Features
 
 - [ ] Django admin registration for all models (fast internal CRUD)
