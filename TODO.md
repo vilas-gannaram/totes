@@ -71,9 +71,13 @@ UI items below.
       `font-mono` on SKU/quantity/money columns
 - [x] Derive stock status (in stock / low / out) from `quantity_available`
       vs `Product.reorder_point`; shown as "Unit price" (no separate cost field)
-- [ ] Dashboard page (`/`): KPI cards (SKUs, stock value, low stock, out of
-      stock), "Needs reorder" table, stock value by category, recent
-      `StockMovement` list; add nav link
+- [x] Dashboard page (`/`): KPI cards (SKUs, stock value, low stock, out of
+      stock, open purchase orders), "Needs reorder" table, stock value by
+      category, recent `StockMovement` list; nav link
+- [ ] Dashboard: warehouse filter and search from the design, "Reorder"
+      button (needs the purchasing workflow)
+- [x] Placeholder pages for every sidebar link (Customers, Orders,
+      Suppliers, Purchasing); replace each with the real page
 - [ ] Product detail page (`/products/<id>/`): per-warehouse stock,
       movement history; link from inventory rows
 - [ ] Restyle products and warehouses list pages to match
@@ -94,8 +98,8 @@ UI items below.
 - [ ] Stock movement ledger: every inventory change writes a
       `StockMovement` row (receipt, reserve, release, ship, adjust) instead
       of just overwriting the counter
-- [ ] Low-stock "Needs reorder" panel on the dashboard (status logic
-      already in `inventory.views.with_status`)
+- [x] Low-stock "Needs reorder" panel on the dashboard (status logic in
+      `inventory.views.with_status`)
 - [ ] Order lifecycle: place → reserve stock → pay → ship, with status
       transitions validated server-side
 - [ ] Purchase order lifecycle: draft → ordered → received, receiving

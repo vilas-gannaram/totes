@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+	<header class="mb-5">
+		<h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
+		<p class="text-base-content/60">All warehouses</p>
+	</header>
+
+	<section aria-label="Key figures" class="mb-6 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Total SKUs</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">{{ total_skus }}</span>
+			<span class="text-base-content/60 text-sm">In the catalog</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Stock value</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">${{ stock_value|floatformat:"0g" }}</span>
+			<span class="text-base-content/60 text-sm">Available stock at unit price</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Low stock</span>
+			<span class="text-warning font-mono text-3xl font-medium tracking-tight">{{ low_count }}</span>
+			<span class="text-base-content/60 text-sm">At or below reorder point</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Out of stock</span>
+			<span class="text-error font-mono text-3xl font-medium tracking-tight">{{ out_count }}</span>
+			<span class="text-base-content/60 text-sm">Nothing available</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Open purchase orders</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">{{ open_po_count }}</span>
+			<span class="text-base-content/60 text-sm">${{ incoming_value|floatformat:"0g" }} incoming</span>
+		</div>
+	</section>
+
+	<div class="flex flex-wrap items-start gap-6">
+		<section aria-labelledby="low-h" class="bg-base-100 border-base-300 rounded-box min-w-0 flex-[2_1_560px] overflow-hidden border">
+			<div class="border-base-300 flex items-center justify-between gap-3 border-b px-5 py-4">
+				<h2 id="low-h" class="font-semibold">Needs reorder</h2>
+				<a href="{% url 'inventory-list' %}?status=low" class="link link-hover text-sm font-medium">View low stock</a>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+							<th>Product</th>
+							<th>Location</th>
+							<th class="text-right">Available</th>
+							<th class="text-right">Reorder at</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for row in needs_reorder %}
+						<tr>
+							<td>
+								<div class="flex flex-col">
+									<span class="font-medium">{{ row.product.name }}</span>
+									<span class="text-base-content/60 font-mono text-xs">{{ row.product.sku }}</span>
+								</div>
+							</td>
+							<td>{{ row.warehouse.name }}</td>
+							<td class="text-right font-mono">{{ row.quantity_available }}</td>
+							<td class="text-base-content/60 text-right font-mono">{{ row.product.reorder_point }}</td>
+							<td>
+								{% if row.status == "out" %}
+								<span class="badge badge-soft badge-error">Out of stock</span>
+								{% else %}
+								<span class="badge badge-soft badge-warning">Low</span>
+								{% endif %}
+							</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="5" class="text-base-content/60 text-center">Nothing needs reordering.</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<div class="flex min-w-0 flex-[1_1_320px] flex-col gap-6">
+			<section aria-labelledby="cat-h" class="bg-base-100 border-base-300 rounded-box flex flex-col gap-4 border p-5">
+				<h2 id="cat-h" class="font-semibold">Stock value by category</h2>
+				{% for c in categories %}
+				<div class="flex flex-col gap-1.5">
+					<div class="flex justify-between text-sm">
+						<span>{{ c.name }}</span>
+						<span class="font-mono">${{ c.total|floatformat:"0g" }}</span>
+					</div>
+					<progress class="progress progress-neutral" value="{{ c.pct }}" max="100" aria-label="{{ c.name }}"></progress>
+				</div>
+				{% empty %}
+				<p class="text-base-content/60 text-sm">No stock yet.</p>
+				{% endfor %}
+			</section>
+
+			<section aria-labelledby="mov-h" class="bg-base-100 border-base-300 rounded-box flex flex-col border p-5">
+				<h2 id="mov-h" class="mb-2 font-semibold">Recent movements</h2>
+				{% for m in movements %}
+				<div class="border-base-300 flex items-center gap-3 border-t py-2.5">
+					<span class="w-20 flex-none text-xs font-semibold uppercase tracking-wide
+						{% if m.movement_type == 'RECEIPT' %}text-success{% elif m.movement_type == 'ADJUST' %}text-warning{% elif m.movement_type == 'RESERVE' or m.movement_type == 'RELEASE' %}text-info{% endif %}">
+						{{ m.get_movement_type_display }}
+					</span>
+					<div class="flex min-w-0 flex-1 flex-col">
+						<span class="truncate text-sm">{{ m.inventory.product.name }}</span>
+						<span class="text-base-content/60 text-xs">{{ m.inventory.warehouse.name }} · {{ m.created_at|date:"d M, H:i" }}</span>
+					</div>
+					<span class="font-mono text-sm font-medium">{{ m.quantity_delta|stringformat:"+d" }}</span>
+				</div>
+				{% empty %}
+				<p class="text-base-content/60 text-sm">No movements yet.</p>
+				{% endfor %}
+			</section>
+		</div>
+	</div>
+{% endblock %}
