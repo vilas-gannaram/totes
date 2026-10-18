@@ -19,7 +19,7 @@
 				class="bg-sidebar text-neutral-content flex flex-col gap-6 p-4 md:w-60 md:shrink-0"
 			>
 				<a
-					href="{% url 'product-list' %}"
+					href="{% url 'dashboard' %}"
 					class="flex items-center gap-2.5 px-2 text-lg font-bold tracking-tight text-white"
 				>
 					<span
@@ -47,6 +47,24 @@
 				<ul class="flex flex-row gap-0.5 text-sm md:flex-col">
 					<li>
 						<a
+							href="{% url 'dashboard' %}"
+							class="hover:bg-sidebar-active flex min-h-11 items-center gap-3 rounded-md px-3 {% if current == 'dashboard' %}bg-sidebar-active font-medium text-white{% endif %}"
+						>
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
+							Dashboard
+						</a>
+					</li>
+					<li>
+						<a
+							href="{% url 'inventory-list' %}"
+							class="hover:bg-sidebar-active flex min-h-11 items-center gap-3 rounded-md px-3 {% if current == 'inventory-list' %}bg-sidebar-active font-medium text-white{% endif %}"
+						>
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5z" /><path d="M3 13l9 5 9-5" /></svg>
+							Inventory
+						</a>
+					</li>
+					<li>
+						<a
 							href="{% url 'product-list' %}"
 							class="hover:bg-sidebar-active flex min-h-11 items-center gap-3 rounded-md px-3 {% if current == 'product-list' %}bg-sidebar-active font-medium text-white{% endif %}"
 						>
@@ -56,20 +74,47 @@
 					</li>
 					<li>
 						<a
+							href="{% url 'order-list' %}"
+							class="hover:bg-sidebar-active flex min-h-11 items-center gap-3 rounded-md px-3 {% if current == 'order-list' %}bg-sidebar-active font-medium text-white{% endif %}"
+						>
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z" /><path d="M9 8h6M9 12h6" /></svg>
+							Orders
+						</a>
+					</li>
+					<li>
+						<a
+							href="{% url 'customer-list' %}"
+							class="hover:bg-sidebar-active flex min-h-11 items-center gap-3 rounded-md px-3 {% if current == 'customer-list' %}bg-sidebar-active font-medium text-white{% endif %}"
+						>
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3-6 8-6s8 2 8 6" /></svg>
+							Customers
+						</a>
+					</li>
+					<li>
+						<a
+							href="{% url 'purchase-order-list' %}"
+							class="hover:bg-sidebar-active flex min-h-11 items-center gap-3 rounded-md px-3 {% if current == 'purchase-order-list' %}bg-sidebar-active font-medium text-white{% endif %}"
+						>
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h9l5 5v15H6z" /><path d="M14 2v6h6" /><path d="M9 13h8M9 17h5" /></svg>
+							Purchasing
+						</a>
+					</li>
+					<li>
+						<a
+							href="{% url 'supplier-list' %}"
+							class="hover:bg-sidebar-active flex min-h-11 items-center gap-3 rounded-md px-3 {% if current == 'supplier-list' %}bg-sidebar-active font-medium text-white{% endif %}"
+						>
+							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4" /><path d="M2 21c0-4 3-6 7-6s7 2 7 6" /><path d="M16 4a4 4 0 010 8M19 15c2 1 3 3 3 6" /></svg>
+							Suppliers
+						</a>
+					</li>
+					<li>
+						<a
 							href="{% url 'warehouse-list' %}"
 							class="hover:bg-sidebar-active flex min-h-11 items-center gap-3 rounded-md px-3 {% if current == 'warehouse-list' %}bg-sidebar-active font-medium text-white{% endif %}"
 						>
 							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V9l9-6 9 6v12" /><path d="M7 21v-8h10v8" /></svg>
 							Warehouses
-						</a>
-					</li>
-					<li>
-						<a
-							href="{% url 'inventory-list' %}"
-							class="hover:bg-sidebar-active flex min-h-11 items-center gap-3 rounded-md px-3 {% if current == 'inventory-list' %}bg-sidebar-active font-medium text-white{% endif %}"
-						>
-							<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
-							Inventory
 						</a>
 					</li>
 				</ul>

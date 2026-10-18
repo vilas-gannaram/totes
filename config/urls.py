@@ -18,9 +18,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from . import views
+
 urlpatterns = [
+    path("", views.dashboard, name="dashboard"),
     path("admin/", admin.site.urls),
     path("products/", include("products.urls")),
     path("warehouses/", include("warehouses.urls")),
     path("inventory/", include("inventory.urls")),
+    path("customers/", include("customers.urls")),
+    path("orders/", include("orders.urls")),
+    path("suppliers/", include("suppliers.urls")),
+    path("purchasing/", include("purchasing.urls")),
 ]
