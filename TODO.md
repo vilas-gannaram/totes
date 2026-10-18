@@ -103,7 +103,7 @@ UI items below.
 - [x] `list_select_related` on `InventoryAdmin` and `StockMovementAdmin`
 - [x] `search_fields` on `InventoryAdmin` and `StockMovementAdmin`
 - [x] Make the `StockMovement` admin add-only (no change/delete)
-- [ ] Default `Meta.ordering` on `Product`, `Warehouse`, `Customer`,
+- [x] Default `Meta.ordering` on `Product`, `Warehouse`, `Customer`,
       `StockMovement`
 - [ ] Admin add of `StockMovement` doesn't update the `Inventory` counter;
       route adjustments through code that writes both together

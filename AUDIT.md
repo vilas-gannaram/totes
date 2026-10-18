@@ -23,7 +23,8 @@ Apps reviewed: `products`, `warehouses`, `inventory`, `customers`.
 4. **Ledger is editable in admin.** `StockMovement` is meant to be
    append-only. Make the admin read-only (`has_change_permission` and
    `has_delete_permission` return `False`).
-5. **No default ordering** on `Product`, `Warehouse`, `Customer`,
+5. **No default ordering** (done: `sku`, `location_code`, `name, email`,
+   `-created_at`) on `Product`, `Warehouse`, `Customer`,
    `StockMovement`. Unordered lists are unstable, especially paginated
    ones. Add `Meta.ordering` (e.g. `["sku"]`, `["location_code"]`,
    `["name"]`, `["-created_at"]`).
