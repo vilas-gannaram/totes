@@ -3,7 +3,6 @@ from uuid import uuid4
 from django.db import models
 
 
-# Create your models here.
 class Product(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     sku = models.CharField(max_length=64, unique=True)
@@ -13,6 +12,9 @@ class Product(models.Model):
     reorder_point = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sku"]
 
     def __str__(self):
         return f"{self.sku} - {self.name}"
