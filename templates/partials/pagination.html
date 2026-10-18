@@ -1,0 +1,16 @@
+		{% if page.paginator.num_pages > 1 %}
+		<div class="border-base-300 flex flex-wrap items-center justify-between gap-3 border-t p-3 text-sm">
+			<span class="text-base-content/60">
+				Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}
+			</span>
+			<div class="join">
+				{% if page.has_previous %}
+				<a class="join-item btn btn-sm" aria-label="Previous page" href="?{% if filter_qs %}{{ filter_qs }}&amp;{% endif %}page={{ page.previous_page_number }}">‹</a>
+				{% endif %}
+				<span class="join-item btn btn-sm btn-neutral pointer-events-none">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+				{% if page.has_next %}
+				<a class="join-item btn btn-sm" aria-label="Next page" href="?{% if filter_qs %}{{ filter_qs }}&amp;{% endif %}page={{ page.next_page_number }}">›</a>
+				{% endif %}
+			</div>
+		</div>
+		{% endif %}

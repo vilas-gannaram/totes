@@ -80,7 +80,9 @@ UI items below.
       Suppliers, Purchasing); replace each with the real page
 - [ ] Product detail page (`/products/<id>/`): per-warehouse stock,
       movement history; link from inventory rows
-- [ ] Restyle products and warehouses list pages to match
+- [x] Restyle products list: search, category filter, pagination, stock
+      totals and status (shared `partials/pagination.html`)
+- [ ] Restyle warehouses list page to match
 - [ ] Nav entries for Customers / Orders / Suppliers / Purchasing as each
       app gets its pages (Shipments and Reports are in the design but not
       scoped); dashboard "Open purchase orders" card depends on `purchasing`
