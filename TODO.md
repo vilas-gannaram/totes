@@ -89,7 +89,8 @@ UI items below.
 
 ## Features
 
-- [ ] Admin registration for every new model (fast internal CRUD)
+- [x] Admin registration for every model (fast internal CRUD); line items
+      (`OrderItem`, `PurchaseOrderItem`) are edited as inlines on their parent
 - [ ] Stock movement ledger: every inventory change writes a
       `StockMovement` row (receipt, reserve, release, ship, adjust) instead
       of just overwriting the counter
