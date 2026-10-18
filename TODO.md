@@ -59,12 +59,12 @@ rationale behind each model.
 
 - [x] Custom light daisyUI theme (`depot`) + dark sidebar layout in
       `base.html`, active nav state via `request.resolver_match`
-- [ ] Inventory list restyle: status tabs (All / In stock / Low / Out),
+- [x] Inventory list restyle: status tabs (All / In stock / Low / Out),
       search, category + warehouse filters as `?status=&q=&category=&warehouse=`
       query params handled in the view, `Paginator`, status badges,
       `font-mono` on SKU/quantity/money columns
-- [ ] Derive stock status (in stock / low / out) from `quantity_available`
-      vs `Product.reorder_point`; decide on "Unit cost" vs `unit_price`
+- [x] Derive stock status (in stock / low / out) from `quantity_available`
+      vs `Product.reorder_point`; shown as "Unit price" (no separate cost field)
 - [ ] Dashboard page (`/`): KPI cards (SKUs, stock value, low stock, out of
       stock), "Needs reorder" table, stock value by category, recent
       `StockMovement` list; add nav link

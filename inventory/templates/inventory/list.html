@@ -3,38 +3,125 @@
 {% block title %}Inventory{% endblock %}
 
 {% block content %}
-	<h1 class="text-3xl font-bold tracking-tight text-base-content">Inventory</h1>
-	<p class="text-base-content/60 mb-4">
-		{{ inventory|length }} row{{ inventory|length|pluralize }}
-	</p>
-	<div class="overflow-x-auto bg-base-100 rounded-box shadow-sm">
-		<table class="table">
-			<thead>
-				<tr class="text-xs uppercase tracking-wide text-base-content/60">
-					<th>SKU</th>
-					<th>Product</th>
-					<th>Warehouse</th>
-					<th>Available</th>
-					<th>Reserved</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for row in inventory %}
-				<tr>
-					<td>{{ row.product.sku }}</td>
-					<td>{{ row.product.name }}</td>
-					<td>{{ row.warehouse.location_code }}</td>
-					<td>{{ row.quantity_available }}</td>
-					<td>{{ row.quantity_reserved }}</td>
-				</tr>
-				{% empty %}
-				<tr>
-					<td colspan="5" class="text-center text-base-content/60">
-						No inventory yet.
-					</td>
-				</tr>
+	<header class="mb-5">
+		<h1 class="text-3xl font-bold tracking-tight">Inventory</h1>
+		<p class="text-base-content/60">
+			{{ page.paginator.count }} row{{ page.paginator.count|pluralize }}
+		</p>
+	</header>
+
+	<section class="bg-base-100 border-base-300 overflow-hidden rounded-box border">
+		<div class="border-base-300 flex flex-wrap items-center justify-between gap-3 border-b p-3">
+			<div role="tablist" class="flex flex-wrap gap-1">
+				{% for tab in tabs %}
+				<a
+					role="tab"
+					href="?status={{ tab.id }}{% if tab_qs %}&amp;{{ tab_qs }}{% endif %}"
+					aria-selected="{{ tab.active|yesno:'true,false' }}"
+					class="btn btn-sm {% if tab.active %}btn-neutral{% else %}btn-ghost{% endif %}"
+				>
+					{{ tab.label }}
+					<span class="font-mono text-xs opacity-70">{{ tab.count }}</span>
+				</a>
 				{% endfor %}
-			</tbody>
-		</table>
-	</div>
+			</div>
+
+			<form method="get" class="flex flex-wrap gap-2">
+				<input type="hidden" name="status" value="{{ status }}" />
+				<input
+					type="search"
+					name="q"
+					value="{{ q }}"
+					placeholder="Filter by name or SKU"
+					aria-label="Filter products"
+					class="input input-sm w-60"
+				/>
+				<select name="category" aria-label="Category" class="select select-sm" onchange="this.form.submit()">
+					<option value="">All categories</option>
+					{% for c in categories %}
+					<option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>
+					{% endfor %}
+				</select>
+				<select name="warehouse" aria-label="Warehouse" class="select select-sm" onchange="this.form.submit()">
+					<option value="">All warehouses</option>
+					{% for w in warehouses %}
+					<option value="{{ w.location_code }}" {% if w.location_code == warehouse %}selected{% endif %}>{{ w.name }}</option>
+					{% endfor %}
+				</select>
+				<button type="submit" class="btn btn-sm btn-primary">Filter</button>
+			</form>
+		</div>
+
+		<div class="overflow-x-auto">
+			<table class="table">
+				<thead>
+					<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+						<th>Product</th>
+						<th>Category</th>
+						<th>Warehouse</th>
+						<th class="text-right">Available</th>
+						<th class="text-right">Reserved</th>
+						<th class="text-right">Unit price</th>
+						<th class="text-right">Value</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for row in page %}
+					<tr>
+						<td>
+							<div class="flex items-center gap-3">
+								<div class="bg-base-200 text-base-content/60 flex size-10 flex-none items-center justify-center rounded-md font-mono text-xs">
+									{{ row.product.name|slice:":2"|upper }}
+								</div>
+								<div class="flex flex-col">
+									<span class="font-medium">{{ row.product.name }}</span>
+									<span class="text-base-content/60 font-mono text-xs">{{ row.product.sku }}</span>
+								</div>
+							</div>
+						</td>
+						<td>{{ row.product.category|default:"—" }}</td>
+						<td>{{ row.warehouse.name }}</td>
+						<td class="text-right font-mono font-medium">{{ row.quantity_available }}</td>
+						<td class="text-base-content/60 text-right font-mono">{{ row.quantity_reserved }}</td>
+						<td class="text-right font-mono">${{ row.product.unit_price }}</td>
+						<td class="text-right font-mono">${{ row.value|floatformat:2 }}</td>
+						<td>
+							{% if row.status == "out" %}
+							<span class="badge badge-soft badge-error">Out of stock</span>
+							{% elif row.status == "low" %}
+							<span class="badge badge-soft badge-warning">Low</span>
+							{% else %}
+							<span class="badge badge-soft badge-success">In stock</span>
+							{% endif %}
+						</td>
+					</tr>
+					{% empty %}
+					<tr>
+						<td colspan="8" class="text-base-content/60 text-center">
+							No inventory matches.
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+		{% if page.paginator.num_pages > 1 %}
+		<div class="border-base-300 flex flex-wrap items-center justify-between gap-3 border-t p-3 text-sm">
+			<span class="text-base-content/60">
+				Showing {{ page.start_index }}–{{ page.end_index }} of {{ page.paginator.count }}
+			</span>
+			<div class="join">
+				{% if page.has_previous %}
+				<a class="join-item btn btn-sm" aria-label="Previous page" href="?{% if filter_qs %}{{ filter_qs }}&amp;{% endif %}page={{ page.previous_page_number }}">‹</a>
+				{% endif %}
+				<span class="join-item btn btn-sm btn-neutral pointer-events-none">{{ page.number }} / {{ page.paginator.num_pages }}</span>
+				{% if page.has_next %}
+				<a class="join-item btn btn-sm" aria-label="Next page" href="?{% if filter_qs %}{{ filter_qs }}&amp;{% endif %}page={{ page.next_page_number }}">›</a>
+				{% endif %}
+			</div>
+		</div>
+		{% endif %}
+	</section>
 {% endblock %}
