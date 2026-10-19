@@ -107,6 +107,14 @@ UI items below.
 - [ ] Purchase order lifecycle: draft → ordered → received, receiving
       increments inventory via `StockMovement`
 
+## Dev tooling
+
+- [x] `seed_demo` management command: deterministic demo data with a
+      consistent stock ledger (`--reset` to wipe and reseed); see `README.md`
+- [ ] `make seed` / `make reseed` shortcuts in the `Makefile`
+- [ ] Keep `seed_demo` in step with the models as they change (new fields,
+      the order and purchasing workflows)
+
 ## Audit fixes (see `AUDIT.md` §1)
 
 - [ ] `Inventory` `verbose_name_plural = "inventory"` (admin shows

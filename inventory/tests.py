@@ -1,4 +1,5 @@
 from decimal import Decimal
+from io import StringIO
 
 from django.test import TestCase
 from django.urls import reverse
@@ -70,3 +71,41 @@ class InventoryListTests(TestCase):
         page = self.get().context["page"]
         self.assertEqual(len(page), 25)
         self.assertEqual(len(self.get(page=2).context["page"]), 8)
+
+
+class SeedDemoTests(TestCase):
+    def test_seed_builds_a_consistent_database(self):
+        from django.core.management import call_command
+        from django.db.models import Sum
+
+        from orders.models import Order
+
+        call_command("seed_demo", stdout=StringIO())
+
+        self.assertGreater(Product.objects.count(), 30)
+        self.assertGreater(Inventory.objects.count(), 50)
+        # the ledger explains every counter
+        for row in Inventory.objects.annotate(total=Sum("movements__quantity_delta")):
+            self.assertEqual(row.total or 0, row.quantity_available, row)
+        # order totals match their items
+        for order in Order.objects.prefetch_related("items"):
+            self.assertEqual(
+                order.total_amount,
+                sum(i.quantity * i.unit_price_at_order for i in order.items.all()),
+            )
+
+    def test_seed_refuses_a_database_with_data(self):
+        from django.core.management import call_command
+        from django.core.management.base import CommandError
+
+        Warehouse.objects.create(name="Existing", location_code="EXI")
+        with self.assertRaises(CommandError):
+            call_command("seed_demo", stdout=StringIO())
+
+    def test_reset_replaces_existing_data(self):
+        from django.core.management import call_command
+
+        Warehouse.objects.create(name="Existing", location_code="EXI")
+        call_command("seed_demo", reset=True, yes=True, stdout=StringIO())
+        self.assertFalse(Warehouse.objects.filter(location_code="EXI").exists())
+        self.assertEqual(Warehouse.objects.count(), 3)

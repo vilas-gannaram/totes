@@ -29,6 +29,28 @@ to recompile on save.
 
 Admin panel: `http://127.0.0.1:8000/admin/`
 
+## Demo data
+
+To fill an empty database with believable sample data (3 warehouses, 40
+products, stock, customers, suppliers, orders and purchase orders):
+
+```
+uv run python manage.py seed_demo
+```
+
+It is deterministic (fixed random seed), so every run builds the same data,
+and the stock ledger is consistent: each inventory row's
+`quantity_available` equals the sum of its `StockMovement` deltas. It
+refuses to run on a database that already has data. To wipe the domain data
+(users are kept) and reseed:
+
+```
+uv run python manage.py seed_demo --reset      # asks for confirmation
+uv run python manage.py seed_demo --reset --yes
+```
+
+The command lives in `config/management/commands/seed_demo.py`.
+
 ## Project structure
 
 Each domain area is its own Django app (`products`, `warehouses`,
