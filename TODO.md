@@ -82,12 +82,13 @@ UI items below.
       movement history; linked from the products and inventory lists
 - [x] Restyle products list: search, category filter, pagination, stock
       totals and status (shared `partials/pagination.html`)
-- [ ] Restyle warehouses list page to match
-- [ ] Nav entries for Customers / Orders / Suppliers / Purchasing as each
+- [x] Restyle warehouses list page to match (SKUs, units, stock value per warehouse)
+- [x] Nav entries for Customers / Orders / Suppliers / Purchasing as each
       app gets its pages (Shipments and Reports are in the design but not
       scoped); dashboard "Open purchase orders" card depends on `purchasing`
-- [ ] List/detail pages for the new apps (see `AUDIT.md` §3): customers,
-      orders (list, detail, new), suppliers, purchase orders (list, detail)
+- [x] List pages for the new apps (see `AUDIT.md` §3): customers, orders
+      (status tabs), suppliers, purchase orders (status tabs)
+- [ ] Detail pages: order (+ new order), purchase order
 - [ ] Decide the design's action buttons: New product, Reorder, Export CSV,
       Scan barcode (build or drop each)
 - [ ] `ModelForm`s for create/edit, plus flash messages
