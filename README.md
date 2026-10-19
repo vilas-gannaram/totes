@@ -1,141 +1,255 @@
 # Totes
 
-Inventory management system, built with Django.
+Inventory management for warehouses, built with Django. Products, stock per
+warehouse, customers and sales orders, suppliers and purchase orders, all
+tied to an auditable stock ledger.
+
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Dashboard" width="32%">
+  <img src="docs/screenshots/inventory.png" alt="Inventory list" width="32%">
+  <img src="docs/screenshots/products.png" alt="Products list" width="32%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/product-detail.png" alt="Product detail with stock ledger" width="32%">
+  <img src="docs/screenshots/purchase-order-new.png" alt="New purchase order form" width="32%">
+</p>
 
 ## Stack
 
-- Python 3.14, [uv](https://docs.astral.sh/uv/) for dependency management
-- Django 6.1
-- Postgres (Supabase) via `DATABASE_URL` in `.env` (see `.env.example`);
-  without it the app falls back to sqlite (`db.sqlite3`)
-- Server-rendered templates (Django templates)
-- [daisyUI](https://daisyui.com/docs/install/django/) + Tailwind CSS
-  (standalone binary, no Node.js) and self-hosted Manrope/Geist Mono fonts
-  for styling. Several themes (Nord by default, plus Corporate, Emerald,
-  Winter, Dim and the custom Depot) with a picker at the bottom of the
-  sidebar; the choice is stored in the browser.
+- Python 3.14, [uv](https://docs.astral.sh/uv/), Django 6.1
+- Postgres (Supabase) via `DATABASE_URL` in `.env`; sqlite when it is unset
+- Server-rendered Django templates, [daisyUI](https://daisyui.com/) +
+  Tailwind (standalone binary, no Node.js), self-hosted Manrope / Geist Mono
+- Themes (Nord default, Corporate, Emerald, Winter, Dim, Depot) with a
+  picker in the sidebar; mobile layout with a collapsible menu
 
 ## Getting started
 
 ```
-make install     # uv sync
-make css-install  # download tailwindcss + daisyUI (one-time; no Node.js needed)
-make css-build    # compile static/css/output.css
-cp .env.example .env   # then set DATABASE_URL (skip to use sqlite)
-make migrate      # apply migrations
-make superuser    # create an admin login
-make run          # start the dev server at http://127.0.0.1:8000/
+make install            # uv sync
+make css-install        # download tailwindcss + daisyUI (one-time)
+cp .env.example .env    # set DATABASE_URL, or skip to use sqlite
+make migrate
+make superuser          # admin login for /admin/
+make seed               # demo data (see below)
+make run                # http://127.0.0.1:8000/
 ```
 
-While actively changing styles, run `make css-watch` instead of `css-build`
-to recompile on save.
-
-Admin panel: `http://127.0.0.1:8000/admin/`
+`make help` lists the rest. After changing templates or
+`static/css/input.css`, run `make css-build` (or `make css-watch`) and commit
+the regenerated `static/css/output.css`; it is committed so deploys don't
+build it. `make test` always runs on sqlite.
 
 ## Demo data
 
-To fill an empty database with believable sample data (3 warehouses, 40
-products, stock, customers, suppliers, orders and purchase orders):
+`make seed` fills an empty database with 3 warehouses, 40 products, stock,
+customers, suppliers, orders and purchase orders. It is deterministic, keeps
+the stock ledger consistent, and refuses to run on a database that already
+has data. `make reseed` wipes the domain data (users are kept) and reseeds,
+after asking; `uv run python manage.py seed_demo --reset --yes` skips the
+prompt. The command lives in `config/management/commands/seed_demo.py`.
 
-```
-make seed                                      # or: uv run python manage.py seed_demo
-```
+## Apps and pages
 
-It is deterministic (fixed random seed), so every run builds the same data,
-and the stock ledger is consistent: each inventory row's
-`quantity_available` equals the sum of its `StockMovement` deltas. It
-refuses to run on a database that already has data. To wipe the domain data
-(users are kept) and reseed:
+One Django app per domain concept, each with models, admin, views, urls and
+templates. The dashboard (`/`) lives in `config`.
 
-```
-make reseed                                    # asks for confirmation
-uv run python manage.py seed_demo --reset --yes
-```
+| App          | Models                               | Pages                                   |
+| ------------ | ------------------------------------ | --------------------------------------- |
+| `products`   | `Product`                            | list, detail                            |
+| `warehouses` | `Warehouse`                          | list                                    |
+| `inventory`  | `Inventory`, `StockMovement`         | list (status tabs, filters)             |
+| `customers`  | `Customer`                           | list                                    |
+| `orders`     | `Order`, `OrderItem`                 | list, detail, new                       |
+| `suppliers`  | `Supplier`                           | list                                    |
+| `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | list, detail, new, edit (drafts)        |
 
-The command lives in `config/management/commands/seed_demo.py`.
+Conventions:
 
-## Project structure
-
-Each domain area is its own Django app, with its own models, admin
-registration, views, urls, and templates. Further work is tracked in
-`TODO.md`.
-
-| App          | Models                         | Pages                                  |
-| ------------ | ------------------------------ | -------------------------------------- |
-| `products`   | `Product`                      | list (filters, stock totals), detail   |
-| `warehouses` | `Warehouse`                    | list                                   |
-| `inventory`  | `Inventory`, `StockMovement`   | list (status tabs, filters, pagination) |
-| `customers`  | `Customer`                     | list                                   |
-| `orders`     | `Order`, `OrderItem`           | list (status tabs), detail, new order  |
-| `suppliers`  | `Supplier`                     | list                                   |
-| `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | list (status tabs), detail       |
-
-The dashboard lives at `/`, served from `config`.
-
-```
-config/       project settings, root URLs, dashboard view, seed_demo command
-<app>/        the seven domain apps above
-templates/    shared base.html, dashboard, placeholder, partials/ (root-level;
-              per-app templates live in <app>/templates/<app>/)
-static/       css/ (Tailwind + daisyUI build), fonts/ (Manrope + Geist Mono, self-hosted)
-manage.py     Django's CLI entrypoint
-```
+- Plural app names (`inventory` stays singular, a mass noun); UUID primary keys.
+- Views `<model>_<action>`, URL names `<model>-<action>`, templates in
+  `<app>/templates/<app>/<action>.html`.
+- `TextChoices` for statuses; relative imports inside an app, absolute across apps.
 
 ## Workflows
 
-Stock only changes through code that also writes the `StockMovement`
-ledger, so every counter can be explained from history.
+Stock only changes through code that also writes the `StockMovement` ledger,
+so every counter can be explained from history.
 
 **Orders** (`orders/services.py`)
 
-- *New order* (`/orders/new/`): pick a customer and up to six products. The
-  order is created `PENDING` and the stock is reserved, taken from the
-  warehouses holding the most first (`RESERVE` rows; available goes to
-  reserved).
-- *Order detail*: `PENDING` can be marked paid or cancelled, `PAID` shipped
-  or cancelled. Shipping clears the reservation (a `SHIP` row with delta 0,
-  since reserving already took the units out of available). Cancelling
-  returns it (`RELEASE` rows). Other transitions are rejected.
+- *New order* creates a `PENDING` order and reserves stock from the
+  warehouses holding the most first (`RESERVE` rows: units move from
+  available to reserved).
+- `PENDING` → `PAID` or `CANCELLED`; `PAID` → `SHIPPED` or `CANCELLED`.
+  Anything else is rejected.
+- Shipping clears the reservation with a `SHIP` row of delta 0 (reserving
+  already took the units out of available). Cancelling returns them with
+  `RELEASE` rows.
 
 **Purchase orders** (`purchasing/services.py`)
 
-- `DRAFT` can be marked ordered or cancelled; `ORDERED` can be cancelled
-  while nothing has been received.
-- On an ordered PO, the *Receive now* boxes book units per line into the
-  PO's warehouse (`RECEIPT` rows, creating the inventory row if needed).
-  Partial receipts are fine; the PO becomes `RECEIVED` when every line is
-  complete.
-- *New purchase order* (`/purchasing/new/`): supplier, warehouse, optional
-  expected date and product lines with quantity and unit cost. It is saved
-  as a `DRAFT`; drafts (and only drafts) can be edited from their page.
+- New POs are saved as `DRAFT`; only drafts can be edited.
+- `DRAFT` → `ORDERED` or `CANCELLED`; `ORDERED` → `CANCELLED` while nothing
+  has been received.
+- On an ordered PO, *Receive now* books units per line into the PO's
+  warehouse (`RECEIPT` rows; the inventory row is created if needed).
+  Partial receipts are fine, and the PO becomes `RECEIVED` once every line
+  is complete.
 
-## Common commands
+## Data model
 
-See `make help` for the full list (`migrate`, `makemigrations`, `shell`,
-`superuser`, `test`, ...). Run `make css-build` after changing templates or
-`static/css/input.css`, and commit the regenerated `static/css/output.css`
-(it is committed so deployments don't have to build it).
+```mermaid
+erDiagram
+    PRODUCTS {
+        uuid id PK
+        string sku UK
+        string name
+        string category
+        numeric unit_price
+        int reorder_point
+        datetime created_at
+        datetime updated_at
+    }
+
+    WAREHOUSES {
+        uuid id PK
+        string name
+        string location_code UK
+        datetime created_at
+    }
+
+    INVENTORY {
+        uuid id PK
+        uuid product_id FK "unique with warehouse_id"
+        uuid warehouse_id FK "unique with product_id"
+        int quantity_available "check >= 0"
+        int quantity_reserved "check >= 0"
+        datetime updated_at
+    }
+
+    STOCK_MOVEMENTS {
+        uuid id PK
+        uuid inventory_id FK
+        enum movement_type "RECEIPT, RESERVE, RELEASE, SHIP, ADJUST"
+        int quantity_delta
+        string reference_type "ORDER, PURCHASE_ORDER, MANUAL"
+        uuid reference_id "nullable, no FK"
+        datetime created_at
+    }
+
+    CUSTOMERS {
+        uuid id PK
+        string name
+        string email UK
+        string phone
+        datetime created_at
+    }
+
+    ORDERS {
+        uuid id PK
+        uuid customer_id FK
+        enum status "PENDING, PAID, SHIPPED, CANCELLED"
+        numeric total_amount
+        datetime created_at
+        datetime updated_at
+    }
+
+    ORDER_ITEMS {
+        uuid id PK
+        uuid order_id FK "unique with product_id"
+        uuid product_id FK "unique with order_id"
+        int quantity
+        numeric unit_price_at_order
+    }
+
+    SUPPLIERS {
+        uuid id PK
+        string name
+        string email
+        string phone
+        datetime created_at
+    }
+
+    PURCHASE_ORDERS {
+        uuid id PK
+        uuid supplier_id FK
+        uuid warehouse_id FK
+        enum status "DRAFT, ORDERED, RECEIVED, CANCELLED"
+        datetime expected_at
+        datetime created_at
+    }
+
+    PURCHASE_ORDER_ITEMS {
+        uuid id PK
+        uuid purchase_order_id FK
+        uuid product_id FK
+        int quantity_ordered
+        int quantity_received
+        numeric unit_cost
+    }
+
+    PRODUCTS ||--o{ INVENTORY : "stocked as"
+    WAREHOUSES ||--o{ INVENTORY : "holds"
+    INVENTORY ||--o{ STOCK_MOVEMENTS : "logs"
+
+    CUSTOMERS ||--o{ ORDERS : "places"
+    ORDERS ||--o{ ORDER_ITEMS : "contains"
+    PRODUCTS ||--o{ ORDER_ITEMS : "ordered as"
+
+    SUPPLIERS ||--o{ PURCHASE_ORDERS : "fulfills"
+    WAREHOUSES ||--o{ PURCHASE_ORDERS : "received at"
+    PURCHASE_ORDERS ||--o{ PURCHASE_ORDER_ITEMS : "contains"
+    PRODUCTS ||--o{ PURCHASE_ORDER_ITEMS : "restocks"
+```
+
+Design decisions:
+
+- **Real foreign keys and DB constraints.** `Inventory` is unique on
+  `(product, warehouse)`; quantities can't go negative; statuses are enums.
+- **Append-only ledger.** Every change to `quantity_available` or
+  `quantity_reserved` has a `StockMovement`, so counters can be checked
+  against history. A mistake is fixed with a new `ADJUST` row, never an edit.
+  `reference_type` / `reference_id` point at the source without a foreign
+  key, so `inventory` doesn't depend on the order apps.
+- **Frozen prices.** `OrderItem.unit_price_at_order` keeps what was charged
+  when `Product.unit_price` changes later.
+- **Inbound mirrors outbound.** `Supplier` → `PurchaseOrder` →
+  `PurchaseOrderItem` has the same shape as `Order` / `OrderItem`.
+- **Low stock** means total available at or below `Product.reorder_point`.
 
 ## Deploying to Vercel
 
-Vercel detects the Django project from `manage.py` and runs the whole app as
-one function; the database stays on Supabase.
+Vercel detects the project from `manage.py` and runs the app as one function;
+the database stays on Supabase.
 
-1. Run `make css-build` and commit `static/css/output.css`, then push to GitHub.
-2. Import the repo at vercel.com (framework: Django). `collectstatic` runs
-   on deploy (`STATIC_ROOT` is set).
-3. Set environment variables on the project (see `.env.example`):
-   `DATABASE_URL` (use Supabase's **transaction pooler** string, port 6543),
-   `SECRET_KEY` (required when `DEBUG` is off; Vercel defaults `DEBUG` to
-   `False`), and optionally `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS` for a
-   custom domain (`*.vercel.app` is always allowed).
-4. Migrations do not run on deploy: run `make migrate` from your machine
-   with `DATABASE_URL` pointing at Supabase, and create the admin login with
-   `make superuser`.
+1. Run `make css-build`, commit `static/css/output.css`, push to GitHub.
+2. Import the repo at vercel.com (framework: Django, no build command).
+   `collectstatic` runs on deploy.
+3. Set environment variables (see `.env.example`): `DATABASE_URL` (Supabase
+   **transaction pooler**, port 6543) and `SECRET_KEY` (required when
+   `DEBUG` is off, which is the default on Vercel). `ALLOWED_HOSTS` and
+   `CSRF_TRUSTED_ORIGINS` only for a custom domain; `*.vercel.app` is always
+   allowed.
+4. Migrations don't run on deploy: run `make migrate` locally with
+   `DATABASE_URL` set, and create the admin login with `make superuser`.
 
-## Docs
+## Still to do
 
-- `schema.md` — data model (ERD), app grouping, and user journeys
-- `TODO.md` — build roadmap
-- `AUDIT.md` — audit findings and the UI page plan
-- `LEARNING.md` — Django learning notes
+- **Auth.** Nothing requires a login yet; add login and permissions (who can
+  adjust stock, approve POs) before the site is public.
+- **Create/edit forms** for products, warehouses, customers and suppliers
+  (admin only for now).
+- **Dashboard:** warehouse filter and search, a "Reorder" button that drafts
+  a PO for low-stock products; decide on Export CSV and Scan barcode.
+- **Stock adjustments:** a page that writes the `ADJUST` movement and the
+  counter together (adding a movement in the admin doesn't update the
+  counter).
+- **Cleanups:** `Inventory` shows as "Inventorys" in the admin;
+  `Product.unit_price >= 0` constraint; maybe a `Category` model instead of
+  free-text categories; tests for `products` and for the model constraints;
+  keep `seed_demo` in step with model changes.
+- **Deploy leftovers:** `check --deploy` still reports the console mail
+  backend (`mail.E001`) and the HSTS / SSL-redirect warnings; harmless now,
+  decide before going public. An API layer only if something outside the web
+  UI needs one.
