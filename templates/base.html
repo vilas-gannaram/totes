@@ -1,6 +1,6 @@
 {% load static %}
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="nord">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -119,6 +119,17 @@
 					</li>
 				</ul>
 				{% endwith %}
+				<label class="mt-auto flex flex-col gap-1 text-xs">
+					<span class="text-sidebar-muted">Theme</span>
+					<select id="theme-picker" class="select select-sm bg-sidebar-active text-white">
+						<option value="nord">Nord</option>
+						<option value="corporate">Corporate</option>
+						<option value="emerald">Emerald</option>
+						<option value="winter">Winter</option>
+						<option value="dim">Dim</option>
+						<option value="depot">Depot</option>
+					</select>
+				</label>
 			</nav>
 			<main class="min-w-0 flex-1 p-6 md:px-10 md:py-7">
 				{% if messages %}
@@ -131,5 +142,22 @@
 				{% block content %}{% endblock %}
 			</main>
 		</div>
+		<script>
+			(function () {
+				var select = document.getElementById("theme-picker");
+				function apply(name) {
+					document.documentElement.setAttribute("data-theme", name);
+					select.value = name;
+				}
+				var saved = null;
+				try { saved = localStorage.getItem("theme"); } catch (e) {}
+				// an unknown saved name (e.g. a removed theme) falls back to the default
+				apply(saved && select.querySelector('option[value="' + saved + '"]') ? saved : "nord");
+				select.addEventListener("change", function () {
+					apply(select.value);
+					try { localStorage.setItem("theme", select.value); } catch (e) {}
+				});
+			})();
+		</script>
 	</body>
 </html>

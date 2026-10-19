@@ -4,7 +4,7 @@
 @source not "./daisyui{,*}.mjs";
 
 @plugin "./daisyui.mjs" {
-	themes: false;
+	themes: nord, corporate, emerald, winter, dim;
 }
 
 @plugin "./daisyui-theme.mjs" {
