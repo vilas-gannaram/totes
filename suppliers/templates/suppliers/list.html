@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Suppliers{% endblock %}
+
+{% block content %}
+	<header class="mb-5">
+		<h1 class="text-3xl font-bold tracking-tight">Suppliers</h1>
+		<p class="text-base-content/60">
+			{{ page.paginator.count }} supplier{{ page.paginator.count|pluralize }}
+		</p>
+	</header>
+
+	<section class="bg-base-100 border-base-300 overflow-hidden rounded-box border">
+		<div class="border-base-300 flex flex-wrap items-center justify-end gap-3 border-b p-3">
+			<form method="get" class="flex flex-wrap gap-2">
+				<input
+					type="search"
+					name="q"
+					value="{{ q }}"
+					placeholder="Filter by name, email or phone"
+					aria-label="Filter suppliers"
+					class="input input-sm w-72"
+				/>
+				<button type="submit" class="btn btn-sm btn-primary">Filter</button>
+			</form>
+		</div>
+
+		<div class="overflow-x-auto">
+			<table class="table">
+				<thead>
+					<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+						<th>Name</th>
+						<th>Email</th>
+						<th>Phone</th>
+						<th class="text-right">Purchase orders</th>
+						<th>Last PO</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for row in page %}
+					<tr>
+						<td class="font-medium">{{ row.name }}</td>
+						<td>{{ row.email }}</td>
+						<td class="font-mono text-sm">{{ row.phone|default:"—" }}</td>
+						<td class="text-right font-mono">{{ row.po_count }}</td>
+						<td>{% if row.last_po %}{{ row.last_po|date:"M j, Y" }}{% else %}—{% endif %}</td>
+					</tr>
+					{% empty %}
+					<tr>
+						<td colspan="5" class="text-base-content/60 text-center">No suppliers match.</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+		{% include "partials/pagination.html" %}
+	</section>
+{% endblock %}
