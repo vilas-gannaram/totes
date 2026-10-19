@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Purchasing{% endblock %}
+
+{% block content %}
+	<header class="mb-5">
+		<h1 class="text-3xl font-bold tracking-tight">Purchasing</h1>
+		<p class="text-base-content/60">
+			{{ page.paginator.count }} purchase order{{ page.paginator.count|pluralize }}
+		</p>
+	</header>
+
+	<section class="bg-base-100 border-base-300 overflow-hidden rounded-box border">
+		<div class="border-base-300 flex flex-wrap items-center justify-between gap-3 border-b p-3">
+			{% include "partials/status_tabs.html" %}
+
+			<form method="get" class="flex flex-wrap gap-2">
+				<input type="hidden" name="status" value="{{ status }}" />
+				<input
+					type="search"
+					name="q"
+					value="{{ q }}"
+					placeholder="Filter by supplier or warehouse"
+					aria-label="Filter purchase orders"
+					class="input input-sm w-64"
+				/>
+				<button type="submit" class="btn btn-sm btn-primary">Filter</button>
+			</form>
+		</div>
+
+		<div class="overflow-x-auto">
+			<table class="table">
+				<thead>
+					<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+						<th>PO</th>
+						<th>Supplier</th>
+						<th>Deliver to</th>
+						<th>Created</th>
+						<th>Expected</th>
+						<th class="text-right">Lines</th>
+						<th class="text-right">Total cost</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for po in page %}
+					<tr>
+						<td class="font-mono text-sm">{{ po.id|stringformat:"s"|slice:":8" }}</td>
+						<td class="font-medium">{{ po.supplier.name }}</td>
+						<td>
+							{{ po.warehouse.name }}
+							<span class="text-base-content/60 font-mono text-xs">{{ po.warehouse.location_code }}</span>
+						</td>
+						<td>{{ po.created_at|date:"M j, Y" }}</td>
+						<td>{% if po.expected_at %}{{ po.expected_at|date:"M j, Y" }}{% else %}—{% endif %}</td>
+						<td class="text-right font-mono">{{ po.item_count }}</td>
+						<td class="text-right font-mono font-medium">${{ po.total_cost|default:"0.00" }}</td>
+						<td>
+							{% if po.status == "ORDERED" %}
+							<span class="badge badge-soft badge-info">Ordered</span>
+							{% elif po.status == "RECEIVED" %}
+							<span class="badge badge-soft badge-success">Received</span>
+							{% elif po.status == "CANCELLED" %}
+							<span class="badge badge-soft badge-error">Cancelled</span>
+							{% else %}
+							<span class="badge badge-soft badge-warning">Draft</span>
+							{% endif %}
+						</td>
+					</tr>
+					{% empty %}
+					<tr>
+						<td colspan="8" class="text-base-content/60 text-center">No purchase orders match.</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+		{% include "partials/pagination.html" %}
+	</section>
+{% endblock %}
