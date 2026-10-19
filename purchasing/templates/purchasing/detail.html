@@ -12,15 +12,24 @@
 				{{ po.supplier.name }} → {{ po.warehouse.name }} · created {{ po.created_at|date:"d M Y" }}
 			</p>
 		</div>
-		{% if po.status == "ORDERED" %}
-		<span class="badge badge-soft badge-info">Ordered</span>
-		{% elif po.status == "RECEIVED" %}
-		<span class="badge badge-soft badge-success">Received</span>
-		{% elif po.status == "CANCELLED" %}
-		<span class="badge badge-soft badge-error">Cancelled</span>
-		{% else %}
-		<span class="badge badge-soft badge-warning">Draft</span>
-		{% endif %}
+		<div class="flex flex-wrap items-center gap-2">
+			{% if po.status == "ORDERED" %}
+			<span class="badge badge-soft badge-info">Ordered</span>
+			{% elif po.status == "RECEIVED" %}
+			<span class="badge badge-soft badge-success">Received</span>
+			{% elif po.status == "CANCELLED" %}
+			<span class="badge badge-soft badge-error">Cancelled</span>
+			{% else %}
+			<span class="badge badge-soft badge-warning">Draft</span>
+			{% endif %}
+			{% for action in actions %}
+			<form method="post" action="{% url 'purchase-order-status' po.pk %}"{% if action.danger %} onsubmit="return confirm('Cancel this purchase order?')"{% endif %}>
+				{% csrf_token %}
+				<input type="hidden" name="status" value="{{ action.status }}" />
+				<button type="submit" class="btn btn-sm {% if action.danger %}btn-outline btn-error{% else %}btn-primary{% endif %}">{{ action.label }}</button>
+			</form>
+			{% endfor %}
+		</div>
 	</header>
 
 	<section aria-label="Key figures" class="mb-6 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
@@ -51,6 +60,8 @@
 			<div class="border-base-300 border-b px-5 py-4">
 				<h2 id="items-h" class="font-semibold">Items</h2>
 			</div>
+			<form method="post" action="{% url 'purchase-order-receive' po.pk %}">
+			{% csrf_token %}
 			<div class="overflow-x-auto">
 				<table class="table">
 					<thead>
@@ -60,6 +71,7 @@
 							<th class="text-right">Received</th>
 							<th class="text-right">Unit cost</th>
 							<th class="text-right">Line cost</th>
+							{% if can_receive %}<th class="w-32 text-right">Receive now</th>{% endif %}
 						</tr>
 					</thead>
 					<tbody>
@@ -75,15 +87,28 @@
 							<td class="text-right font-mono">{{ item.quantity_received }}</td>
 							<td class="text-right font-mono">${{ item.unit_cost }}</td>
 							<td class="text-right font-mono font-medium">${{ item.line_cost|floatformat:"2g" }}</td>
+							{% if can_receive %}
+							<td class="text-right">
+								{% if item.outstanding %}
+								<input type="number" name="receive-{{ item.pk }}" min="0" max="{{ item.outstanding }}" value="{{ item.outstanding }}" aria-label="Receive {{ item.product.sku }}" class="input input-sm w-24 text-right font-mono" />
+								{% else %}<span class="text-base-content/60">Done</span>{% endif %}
+							</td>
+							{% endif %}
 						</tr>
 						{% empty %}
 						<tr>
-							<td colspan="5" class="text-base-content/60 text-center">No items.</td>
+							<td colspan="{% if can_receive %}6{% else %}5{% endif %}" class="text-base-content/60 text-center">No items.</td>
 						</tr>
 						{% endfor %}
 					</tbody>
 				</table>
 			</div>
+			{% if can_receive %}
+			<div class="border-base-300 flex justify-end border-t p-3">
+				<button type="submit" class="btn btn-primary btn-sm">Receive stock</button>
+			</div>
+			{% endif %}
+			</form>
 		</section>
 
 		<section aria-labelledby="mov-h" class="bg-base-100 border-base-300 rounded-box overflow-hidden border">
