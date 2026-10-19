@@ -3,32 +3,44 @@
 {% block title %}Warehouses{% endblock %}
 
 {% block content %}
-	<h1 class="text-3xl font-bold tracking-tight text-base-content">Warehouses</h1>
-	<p class="text-base-content/60 mb-4">
-		{{ warehouses|length }} warehouse{{ warehouses|length|pluralize }}
-	</p>
-	<div class="overflow-x-auto bg-base-100 rounded-box shadow-sm">
-		<table class="table">
-			<thead>
-				<tr class="text-xs uppercase tracking-wide text-base-content/60">
-					<th>Location code</th>
-					<th>Name</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for warehouse in warehouses %}
-				<tr>
-					<td>{{ warehouse.location_code }}</td>
-					<td>{{ warehouse.name }}</td>
-				</tr>
-				{% empty %}
-				<tr>
-					<td colspan="2" class="text-center text-base-content/60">
-						No warehouses yet.
-					</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-	</div>
+	<header class="mb-5">
+		<h1 class="text-3xl font-bold tracking-tight">Warehouses</h1>
+		<p class="text-base-content/60">
+			{{ warehouses|length }} warehouse{{ warehouses|length|pluralize }}
+		</p>
+	</header>
+
+	<section class="bg-base-100 border-base-300 overflow-hidden rounded-box border">
+		<div class="overflow-x-auto">
+			<table class="table">
+				<thead>
+					<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+						<th>Warehouse</th>
+						<th class="text-right">SKUs stocked</th>
+						<th class="text-right">Units available</th>
+						<th class="text-right">Stock value</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for warehouse in warehouses %}
+					<tr>
+						<td>
+							<div class="flex flex-col">
+								<a href="{% url 'inventory-list' %}?warehouse={{ warehouse.location_code }}" class="font-medium hover:underline">{{ warehouse.name }}</a>
+								<span class="text-base-content/60 font-mono text-xs">{{ warehouse.location_code }}</span>
+							</div>
+						</td>
+						<td class="text-right font-mono">{{ warehouse.sku_count }}</td>
+						<td class="text-right font-mono">{{ warehouse.units }}</td>
+						<td class="text-right font-mono font-medium">${{ warehouse.value|floatformat:2 }}</td>
+					</tr>
+					{% empty %}
+					<tr>
+						<td colspan="4" class="text-base-content/60 text-center">No warehouses yet.</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</section>
 {% endblock %}
