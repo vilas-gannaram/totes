@@ -98,7 +98,7 @@ UI items below.
 - [x] Theme picker in the sidebar (nord default; corporate, emerald, winter,
       dim, depot), choice kept in `localStorage`; sidebar is sticky and one
       screen tall on desktop
-- [ ] Mobile pass: sidebar collapse, tables scroll in a box
+- [x] Mobile pass: sidebar collapses into a menu button, tables scroll in a box, form item rows stack
 
 ## Features
 

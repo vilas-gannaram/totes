@@ -95,7 +95,7 @@ Status workflows live in `orders/services.py` and `purchasing/services.py`
 - Design actions with no backend: "New product", "Reorder", "Export CSV",
   "Scan barcode". Decide per button whether to build (create form, CSV
   response) or drop.
-- Mobile pass: sidebar collapse, tables scroll in a box.
+- (Mobile pass is done: collapsible menu, scrolling tables, stacked form rows.)
 
 ## 4. Order of work
 
