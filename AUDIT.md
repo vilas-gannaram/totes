@@ -68,43 +68,42 @@ Geist Mono. Server-rendered; filters are query params, no JS framework.
 
 | Page | URL | View | Notes |
 |---|---|---|---|
-| Layout | all | `templates/base.html` | dark sidebar, light theme |
+| Layout | all | `templates/base.html` | dark sticky sidebar, theme picker (nord default), flash messages |
+| Dashboard | `/` | `config.views.dashboard` | KPI cards, needs-reorder, stock value by category, recent movements, open POs |
 | Inventory list | `/inventory/` | `inventory.views.inventory_list` | status tabs, search, category/warehouse filters, pagination |
+| Products list | `/products/` | `products.views.product_list` | search, category filter, stock totals and status |
+| Product detail | `/products/<uuid:pk>/` | `products.views.product_detail` | stock per warehouse, movement history |
+| Warehouses list | `/warehouses/` | `warehouses.views.warehouse_list` | SKUs, units, stock value per warehouse |
+| Customers list | `/customers/` | `customers.views.customer_list` | search, order count, last order |
+| Suppliers list | `/suppliers/` | `suppliers.views.supplier_list` | search, PO count, last PO |
+| Orders list | `/orders/` | `orders.views.order_list` | status tabs, customer search |
+| Order detail | `/orders/<uuid:pk>/` | `orders.views.order_detail` | items, movements, pay / ship / cancel buttons |
+| New order | `/orders/new/` | `orders.views.order_new` | customer + up to 6 lines, reserves stock |
+| Purchase orders list | `/purchasing/` | `purchasing.views.purchase_order_list` | status tabs, supplier/warehouse search |
+| Purchase order detail | `/purchasing/<uuid:pk>/` | `purchasing.views.purchase_order_detail` | items, movements, status buttons, receive form |
 
-### From the design, still to build
+Status workflows live in `orders/services.py` and `purchasing/services.py`
+(see `README.md`, "Workflows").
 
-| Page | URL | View | Data |
-|---|---|---|---|
-| Dashboard | `/` | `dashboard` (new, small app or `config`) | KPI cards: total SKUs, stock value, low, out of stock. "Needs reorder" table (reuse `with_status`). Stock value by category. Recent `StockMovement` list. "Open purchase orders" card once `purchasing` exists. |
-| Product detail | `/products/<uuid:pk>/` | `products.views.product_detail` | product fields, stock per warehouse, movement history; linked from inventory rows |
-| Products list restyle | `/products/` | `product_list` | match the inventory table style |
-| Warehouses list restyle | `/warehouses/` | `warehouse_list` | same |
+### Still to build
 
-Design actions with no backend yet: "New product", "Reorder" button on the
-dashboard, "Export CSV", "Scan barcode". Decide per button whether to build
-(create form, CSV response) or drop.
-
-### Proposed for the remaining apps (not in the design)
-
-| Page | URL | App | Notes |
-|---|---|---|---|
-| Customers list | `/customers/` | `customers` | search by name/email |
-| Orders list | `/orders/` | `orders` | status tabs (Pending/Paid/Shipped/Cancelled) |
-| Order detail | `/orders/<uuid:pk>/` | `orders` | items, totals, status transitions |
-| New order | `/orders/new/` | `orders` | pick customer, add items; reserves stock |
-| Suppliers list | `/suppliers/` | `suppliers` | |
-| Purchase orders list | `/purchasing/` | `purchasing` | status tabs (draft/ordered/received) |
-| Purchase order detail | `/purchasing/<uuid:pk>/` | `purchasing` | receive action writes `StockMovement` |
-
-Cross-cutting: forms for create/edit (Django `ModelForm`), flash messages,
-sidebar entries for each new app, mobile pass (sidebar collapse, tables
-scroll in a box).
+- Dashboard warehouse filter and search from the design, and the "Reorder"
+  button.
+- Create/edit forms (`ModelForm`) for products, warehouses, customers,
+  suppliers and purchase orders.
+- Design actions with no backend: "New product", "Reorder", "Export CSV",
+  "Scan barcode". Decide per button whether to build (create form, CSV
+  response) or drop.
+- Mobile pass: sidebar collapse, tables scroll in a box.
 
 ## 4. Order of work
 
-1. Audit fixes 1-5 (small, one commit).
-2. Models: `suppliers`, `orders`, `purchasing` (one app at a time).
-3. Dashboard, Product detail, restyle products/warehouses.
-4. List/detail pages for the new apps.
+Steps 1-4 and the stock-changing flows (reserve, pay, ship, cancel,
+receive) are done. What is left of step 5 is the create/edit forms.
+
+1. Audit fixes 1-5 (small, one commit). Done.
+2. Models: `suppliers`, `orders`, `purchasing` (one app at a time). Done.
+3. Dashboard, Product detail, restyle products/warehouses. Done.
+4. List/detail pages for the new apps. Done.
 5. Forms, then stock-changing flows (reserve, ship, receive) through
-   `StockMovement`.
+   `StockMovement`. Flows done; forms partly (new order only).
