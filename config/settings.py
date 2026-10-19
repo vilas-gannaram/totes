@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,13 +28,32 @@ load_dotenv(BASE_DIR / ".env")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-2z8b8b^0f(*7dn)7dn=y!v92&tk6lap#-ip-wr+wi@fuelwk+("
+ON_VERCEL = bool(os.environ.get("VERCEL"))
+
+
+def env_list(name):
+    return [v.strip() for v in os.environ.get(name, "").split(",") if v.strip()]
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# On by default locally, off by default on Vercel; set DEBUG=True/False to override.
+DEBUG = os.environ.get("DEBUG", "False" if ON_VERCEL else "True").lower() in ("1", "true", "yes")
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.environ.get("SECRET_KEY") or (
+    "django-insecure-2z8b8b^0f(*7dn)7dn=y!v92&tk6lap#-ip-wr+wi@fuelwk+(" if DEBUG else None
+)
+if not SECRET_KEY:
+    raise ImproperlyConfigured("Set the SECRET_KEY environment variable when DEBUG is off.")
+
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS") + [".vercel.app"]
+CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS") + ["https://*.vercel.app"]
+
+if not DEBUG:
+    # Vercel terminates TLS, so trust its forwarded protocol header.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 # Application definition
@@ -91,6 +111,8 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Postgres (Supabase) when DATABASE_URL is set, sqlite for local work without it.
 if os.environ.get("DATABASE_URL"):
     DATABASES = {"default": dj_database_url.parse(os.environ["DATABASE_URL"], ssl_require=True)}
+    # Needed behind Supabase's transaction pooler (port 6543); harmless on a direct connection.
+    DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 else:
     DATABASES = {
         "default": {
@@ -136,6 +158,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"  # collectstatic target; Vercel runs it on deploy
 
 
 # Email
