@@ -112,8 +112,8 @@ UI items below.
       `inventory.views.with_status`)
 - [x] Order lifecycle: place → reserve stock → pay → ship (or cancel and
       release), transitions validated server-side in `orders.services`
-- [ ] `seed_demo` shipped orders log `SHIP -qty`, but the real flow logs
-      `SHIP 0` after `RESERVE -qty`; align the seed with the real flow
+- [x] `seed_demo` shipped orders follow the real flow (`RESERVE -qty`, then
+      `SHIP 0`)
 - [x] Purchase order lifecycle: draft → ordered → received; partial
       receiving per line increments inventory via RECEIPT `StockMovement`s
       (`purchasing.services`)
@@ -124,7 +124,7 @@ UI items below.
 
 - [x] `seed_demo` management command: deterministic demo data with a
       consistent stock ledger (`--reset` to wipe and reseed); see `README.md`
-- [ ] `make seed` / `make reseed` shortcuts in the `Makefile`
+- [x] `make seed` / `make reseed` shortcuts in the `Makefile`
 - [ ] Keep `seed_demo` in step with the models as they change (new fields,
       the order and purchasing workflows)
 

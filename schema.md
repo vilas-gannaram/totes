@@ -269,9 +269,6 @@ mistake is fixed by writing a new `ADJUST` row, not by editing an old one.
 ### Current limitations
 
 The ledger is written by the order and purchase order flows, so the audit
-journey works for those. Two gaps remain:
-
-- Adding a `StockMovement` in the admin does not update the `Inventory`
-  counter, so manual adjustments should go through code that writes both.
-- `seed_demo` logs `SHIP` with the full quantity for its shipped orders,
-  where the real flow logs a delta of 0 after the `RESERVE`.
+journey works for those. One gap remains: adding a `StockMovement` in the
+admin does not update the `Inventory` counter, so manual adjustments should
+go through code that writes both.

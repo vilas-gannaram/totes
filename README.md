@@ -37,7 +37,7 @@ To fill an empty database with believable sample data (3 warehouses, 40
 products, stock, customers, suppliers, orders and purchase orders):
 
 ```
-uv run python manage.py seed_demo
+make seed                                      # or: uv run python manage.py seed_demo
 ```
 
 It is deterministic (fixed random seed), so every run builds the same data,
@@ -47,7 +47,7 @@ refuses to run on a database that already has data. To wipe the domain data
 (users are kept) and reseed:
 
 ```
-uv run python manage.py seed_demo --reset      # asks for confirmation
+make reseed                                    # asks for confirmation
 uv run python manage.py seed_demo --reset --yes
 ```
 
