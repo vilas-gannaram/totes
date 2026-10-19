@@ -48,4 +48,5 @@ reseed:
 	uv run python manage.py seed_demo --reset
 
 test:
-	uv run python manage.py test
+	# empty DATABASE_URL keeps the tests on sqlite instead of creating a test database on Postgres
+	DATABASE_URL= uv run python manage.py test

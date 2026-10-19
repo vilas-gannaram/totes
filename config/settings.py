@@ -10,10 +10,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from urllib.parse import unquote, urlparse
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Real environment variables win over .env, so `DATABASE_URL= manage.py ...`
+# (empty) falls back to sqlite, which is what `make test` relies on.
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -80,12 +88,32 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+def database_from_url(url):
+    """Django DATABASES entry for a postgres:// URL (percent-encoding in the password is decoded)."""
+    parts = urlparse(url)
+    if parts.scheme not in ("postgres", "postgresql"):
+        raise ValueError(f"DATABASE_URL must be a postgres:// or postgresql:// URL, got {parts.scheme!r}")
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": unquote(parts.path.lstrip("/")),
+        "USER": unquote(parts.username or ""),
+        "PASSWORD": unquote(parts.password or ""),
+        "HOST": parts.hostname or "",
+        "PORT": parts.port or "",
+        "OPTIONS": {"sslmode": "require"},
     }
-}
+
+
+# Postgres (Supabase) when DATABASE_URL is set, sqlite for local work without it.
+if os.environ.get("DATABASE_URL"):
+    DATABASES = {"default": database_from_url(os.environ["DATABASE_URL"])}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
