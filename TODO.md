@@ -108,8 +108,11 @@ UI items below.
       release), transitions validated server-side in `orders.services`
 - [ ] `seed_demo` shipped orders log `SHIP -qty`, but the real flow logs
       `SHIP 0` after `RESERVE -qty`; align the seed with the real flow
-- [ ] Purchase order lifecycle: draft → ordered → received, receiving
-      increments inventory via `StockMovement`
+- [x] Purchase order lifecycle: draft → ordered → received; partial
+      receiving per line increments inventory via RECEIPT `StockMovement`s
+      (`purchasing.services`)
+- [ ] New / edit purchase order form (POs can only be created in the admin
+      or by `seed_demo` for now)
 
 ## Dev tooling
 
