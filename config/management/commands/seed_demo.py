@@ -244,8 +244,11 @@ class Command(BaseCommand):
                 total += price * qty
                 row = self.row(product, wh)
                 if status == "SHIPPED":
+                    # as in the real flow: reserve takes it out of available, and
+                    # shipping clears the reservation (delta 0, nothing left to move)
                     row["available"] -= qty
-                    self.log(product, wh, "SHIP", -qty, "ORDER", order.pk, placed + timedelta(days=2))
+                    self.log(product, wh, "RESERVE", -qty, "ORDER", order.pk, placed)
+                    self.log(product, wh, "SHIP", 0, "ORDER", order.pk, placed + timedelta(days=2))
                 elif status in ("PENDING", "PAID"):
                     row["available"] -= qty
                     row["reserved"] += qty

@@ -109,3 +109,31 @@ class SeedDemoTests(TestCase):
         call_command("seed_demo", reset=True, yes=True, stdout=StringIO())
         self.assertFalse(Warehouse.objects.filter(location_code="EXI").exists())
         self.assertEqual(Warehouse.objects.count(), 3)
+
+
+class SeedShippedOrdersTests(TestCase):
+    def test_shipped_orders_follow_the_real_flow(self):
+        from django.core.management import call_command
+
+        from inventory.models import StockMovement
+        from orders.models import Order
+
+        call_command("seed_demo", stdout=StringIO())
+        shipped = Order.objects.filter(status=Order.Status.SHIPPED)
+        self.assertTrue(shipped.exists())
+        for order in shipped:
+            moves = StockMovement.objects.filter(reference_type="ORDER", reference_id=order.pk)
+            ships = moves.filter(movement_type="SHIP")
+            self.assertTrue(ships.exists())
+            self.assertEqual({m.quantity_delta for m in ships}, {0})
+            self.assertTrue(moves.filter(movement_type="RESERVE").exists())
+        # only pending and paid orders still hold a reservation
+        from django.db.models import Sum
+
+        from orders.models import OrderItem
+
+        held = OrderItem.objects.filter(
+            order__status__in=[Order.Status.PENDING, Order.Status.PAID]
+        ).aggregate(n=Sum("quantity"))["n"]
+        reserved = Inventory.objects.aggregate(n=Sum("quantity_reserved"))["n"]
+        self.assertEqual(reserved, held)
