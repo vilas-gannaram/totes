@@ -75,7 +75,8 @@ UI items below.
       stock, open purchase orders), "Needs reorder" table, stock value by
       category, recent `StockMovement` list; nav link
 - [ ] Dashboard: warehouse filter and search from the design, "Reorder"
-      button (needs the purchasing workflow)
+      button (unblocked now that the PO workflow exists; needs the PO
+      create form to land somewhere)
 - [x] Placeholder pages for every sidebar link (Customers, Orders,
       Suppliers, Purchasing); replace each with the real page
 - [x] Product detail page (`/products/<id>/`): per-warehouse stock,
@@ -92,16 +93,21 @@ UI items below.
 - [x] New order form (`/orders/new/`): customer + up to 6 lines, reserves stock via `place_order`, writes RESERVE ledger rows
 - [ ] Decide the design's action buttons: New product, Reorder, Export CSV,
       Scan barcode (build or drop each)
-- [ ] `ModelForm`s for create/edit, plus flash messages
+- [x] Flash messages (`messages` rendered in `base.html`)
+- [ ] `ModelForm`s for create/edit of products, warehouses, customers,
+      suppliers, purchase orders (orders already have a new-order form)
+- [x] Theme picker in the sidebar (nord default; corporate, emerald, winter,
+      dim, depot), choice kept in `localStorage`; sidebar is sticky and one
+      screen tall on desktop
 - [ ] Mobile pass: sidebar collapse, tables scroll in a box
 
 ## Features
 
 - [x] Admin registration for every model (fast internal CRUD); line items
       (`OrderItem`, `PurchaseOrderItem`) are edited as inlines on their parent
-- [ ] Stock movement ledger: every inventory change writes a
-      `StockMovement` row (receipt, reserve, release, ship, adjust) instead
-      of just overwriting the counter
+- [x] Stock movement ledger: order placement, payment/shipping/cancelling
+      and PO receiving all write `StockMovement` rows. Still open: manual
+      adjustments (see the admin item under Audit fixes)
 - [x] Low-stock "Needs reorder" panel on the dashboard (status logic in
       `inventory.views.with_status`)
 - [x] Order lifecycle: place → reserve stock → pay → ship (or cancel and
@@ -134,13 +140,16 @@ UI items below.
 - [ ] Admin add of `StockMovement` doesn't update the `Inventory` counter;
       route adjustments through code that writes both together
 - [ ] `unit_price >= 0` check constraint on `Product`
-- [ ] Tests for `products` and `warehouses` (inventory list view is covered)
+- [ ] Tests for `products` (warehouses, inventory, customers, suppliers,
+      orders and purchasing views/services are covered)
 - [ ] Consider a `Category` model instead of free-text `Product.category`
 
 ## Later / not yet scoped
 
 - [ ] API layer (DRF or plain views) if anything outside the web UI needs it
 - [ ] Auth / permissions model (who can adjust stock, approve POs, etc.)
-- [ ] Tests for model constraints and order/PO state transitions
+- [ ] Tests for the model-level check/unique constraints (order and PO
+      state transitions are covered in `orders/tests.py` and
+      `purchasing/tests.py`)
 - [ ] Deployment (prod WSGI/ASGI server — dev server warns it's not for
       production use)
