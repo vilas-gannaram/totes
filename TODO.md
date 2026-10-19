@@ -12,9 +12,9 @@ UI items below.
 - [x] Wire `settings.py` to Supabase Postgres via `DATABASE_URL` (sqlite
       fallback when unset; `make test` always runs on sqlite)
 - [x] `.env.example` for `DATABASE_URL`
-- [ ] Move `SECRET_KEY` into `.env` too
-- [ ] Split settings into base/dev/prod if needed, or keep single file with
-      env-driven `DEBUG`/`ALLOWED_HOSTS`
+- [x] `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS` from env
+      (`DEBUG` off by default on Vercel; startup fails without `SECRET_KEY`)
+- [x] Single settings file with env-driven `DEBUG`/`ALLOWED_HOSTS` (no split needed)
 
 ## Apps (domain modules)
 
@@ -151,5 +151,8 @@ UI items below.
 - [ ] Tests for the model-level check/unique constraints (order and PO
       state transitions are covered in `orders/tests.py` and
       `purchasing/tests.py`)
-- [ ] Deployment (prod WSGI/ASGI server — dev server warns it's not for
-      production use)
+- [ ] Deployment: code is ready for Vercel (see `README.md`); still to do:
+      create the Vercel project, set its env vars, deploy
+- [ ] `check --deploy` still reports `mail.E001` (console mail backend) and
+      the HSTS / SSL-redirect warnings; harmless now (no email is sent, Vercel
+      redirects to HTTPS) but decide before going public

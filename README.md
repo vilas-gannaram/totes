@@ -112,9 +112,26 @@ ledger, so every counter can be explained from history.
 ## Common commands
 
 See `make help` for the full list (`migrate`, `makemigrations`, `shell`,
-`superuser`, `test`, ...). `make css-build` is needed after pulling changes
-that touch templates or `static/css/input.css`, because the compiled
-`output.css` is not committed.
+`superuser`, `test`, ...). Run `make css-build` after changing templates or
+`static/css/input.css`, and commit the regenerated `static/css/output.css`
+(it is committed so deployments don't have to build it).
+
+## Deploying to Vercel
+
+Vercel detects the Django project from `manage.py` and runs the whole app as
+one function; the database stays on Supabase.
+
+1. Run `make css-build` and commit `static/css/output.css`, then push to GitHub.
+2. Import the repo at vercel.com (framework: Django). `collectstatic` runs
+   on deploy (`STATIC_ROOT` is set).
+3. Set environment variables on the project (see `.env.example`):
+   `DATABASE_URL` (use Supabase's **transaction pooler** string, port 6543),
+   `SECRET_KEY` (required when `DEBUG` is off; Vercel defaults `DEBUG` to
+   `False`), and optionally `ALLOWED_HOSTS` / `CSRF_TRUSTED_ORIGINS` for a
+   custom domain (`*.vercel.app` is always allowed).
+4. Migrations do not run on deploy: run `make migrate` from your machine
+   with `DATABASE_URL` pointing at Supabase, and create the admin login with
+   `make superuser`.
 
 ## Docs
 
