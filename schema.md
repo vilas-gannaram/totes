@@ -181,19 +181,21 @@ Staff work in one warehouse and care about what is physically on the shelf.
    `quantity_reserved` (promised to orders, still on the shelf).
 2. A delivery arrives. They match it to a `PurchaseOrder` marked `ORDERED`
    and enter how much of each `PurchaseOrderItem` actually arrived, which
-   updates `quantity_received`. _(models built; the receiving flow is still todo)_
+   updates `quantity_received`. _(built: the "Receive now" form on the
+   purchase order page; partial receipts are allowed)_
 3. Receiving adds to `quantity_available` and writes a `RECEIPT`
    `StockMovement` with `reference_type = PURCHASE_ORDER`. If the product has
    no `Inventory` row in that warehouse yet, one is created first.
 4. When a physical count disagrees with the system, they make a manual
-   correction. It writes an `ADJUST` movement with `reference_type = MANUAL`
+   correction. _(not built as a page yet; the admin can add a movement but
+   does not update the counter)_ It writes an `ADJUST` movement with `reference_type = MANUAL`
    and a signed `quantity_delta`, so the correction and its size stay on
    record.
 
 ### Sales and fulfilment: orders from placement to shipment
 
-This follows one customer order through `Order.status`. _(models built;
-placing an order, reserving stock and status transitions are still todo)_
+This follows one customer order through `Order.status`. _(built: the new
+order form at `/orders/new/` and the status buttons on the order page)_
 
 1. A `Customer` places an `Order` (`PENDING`) with one `OrderItem` per
    product. Each item copies `Product.unit_price` into `unit_price_at_order`,
@@ -204,7 +206,9 @@ placing an order, reserving stock and status transitions are still todo)_
    warehouse has enough, the order cannot be placed.
 3. Payment moves the order to `PAID`.
 4. Staff pick and ship. Shipping reduces `quantity_reserved` and writes a
-   `SHIP` movement. The order moves to `SHIPPED`.
+   `SHIP` movement with a delta of 0 (reserving already took the units out of
+   `quantity_available`, and the ledger sums `quantity_delta` into that
+   counter). The order moves to `SHIPPED`.
 5. If the order is cancelled before shipping, a `RELEASE` movement returns the
    reserved quantity to `quantity_available` and the order becomes
    `CANCELLED`.
@@ -215,12 +219,14 @@ Status changes are checked on the server, so an order can't jump from
 ### Purchasing: keeping shelves stocked
 
 The purchasing role works from what is running low rather than from what has
-arrived. _(models built; the reorder alerting and PO workflow are still todo)_
+arrived. _(partly built: the dashboard lists products that need reorder and
+the PO page handles ordering and receiving; there is no form to create a
+purchase order yet)_
 
 1. They look for products where total available stock across warehouses has
    fallen to `Product.reorder_point` or below.
 2. For each one they pick a `Supplier` and create a `PurchaseOrder` in
-   `DRAFT` for a target `Warehouse`, with one `PurchaseOrderItem` per product
+   `DRAFT` _(todo: for now in the admin)_ for a target `Warehouse`, with one `PurchaseOrderItem` per product
    giving `quantity_ordered` and `unit_cost`.
 3. Sending it to the supplier moves it to `ORDERED`, with an `expected_at`
    date.
@@ -260,9 +266,12 @@ This role reads history instead of changing it.
 The ledger is append-only, so these answers don't change after the fact. A
 mistake is fixed by writing a new `ADJUST` row, not by editing an old one.
 
-### Current limitation
+### Current limitations
 
-Nothing writes `StockMovement` rows yet. The model exists and is registered
-in the admin, but inventory changes are still made directly on the counters.
-Until the ledger is written on every change, the audit journey above is
-possible only for rows entered by hand.
+The ledger is written by the order and purchase order flows, so the audit
+journey works for those. Two gaps remain:
+
+- Adding a `StockMovement` in the admin does not update the `Inventory`
+  counter, so manual adjustments should go through code that writes both.
+- `seed_demo` logs `SHIP` with the full quantity for its shipped orders,
+  where the real flow logs a delta of 0 after the `RESERVE`.
