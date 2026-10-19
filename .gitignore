@@ -12,11 +12,14 @@ db.sqlite3
 .env.*
 !.env.example
 
-# daisyUI/Tailwind build artifacts (fetched/generated via `make css-install`)
+# daisyUI/Tailwind tooling (fetched via `make css-install`). The compiled
+# static/css/output.css IS committed so deploys don't need to build it.
 static/css/tailwindcss
 static/css/daisyui.mjs
 static/css/daisyui-theme.mjs
-static/css/output.css
+
+# collectstatic output
+staticfiles/
 
 # Editors / OS
 .vscode/
