@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}PO {{ po.id|stringformat:"s"|slice:":8" }}{% endblock %}
+
+{% block content %}
+	<a href="{% url 'purchase-order-list' %}" class="link link-hover text-base-content/60 mb-3 inline-block text-sm">← Purchasing</a>
+
+	<header class="mb-5 flex flex-wrap items-start justify-between gap-3">
+		<div>
+			<h1 class="font-mono text-3xl font-bold tracking-tight">{{ po.id|stringformat:"s"|slice:":8" }}</h1>
+			<p class="text-base-content/60">
+				{{ po.supplier.name }} → {{ po.warehouse.name }} · created {{ po.created_at|date:"d M Y" }}
+			</p>
+		</div>
+		{% if po.status == "ORDERED" %}
+		<span class="badge badge-soft badge-info">Ordered</span>
+		{% elif po.status == "RECEIVED" %}
+		<span class="badge badge-soft badge-success">Received</span>
+		{% elif po.status == "CANCELLED" %}
+		<span class="badge badge-soft badge-error">Cancelled</span>
+		{% else %}
+		<span class="badge badge-soft badge-warning">Draft</span>
+		{% endif %}
+	</header>
+
+	<section aria-label="Key figures" class="mb-6 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Total cost</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">${{ total_cost|floatformat:"2g" }}</span>
+			<span class="text-base-content/60 text-sm">{{ items|length }} line{{ items|length|pluralize }}</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Received</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">{{ units_received }} / {{ units_ordered }}</span>
+			<span class="text-base-content/60 text-sm">Units</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Supplier</span>
+			<span class="truncate text-xl font-medium tracking-tight">{{ po.supplier.name }}</span>
+			<span class="text-base-content/60 truncate text-sm">{{ po.supplier.email }}</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Expected</span>
+			<span class="text-xl font-medium tracking-tight">{% if po.expected_at %}{{ po.expected_at|date:"d M Y" }}{% else %}—{% endif %}</span>
+			<span class="text-base-content/60 text-sm">Deliver to {{ po.warehouse.location_code }}</span>
+		</div>
+	</section>
+
+	<div class="flex flex-col gap-6">
+		<section aria-labelledby="items-h" class="bg-base-100 border-base-300 rounded-box overflow-hidden border">
+			<div class="border-base-300 border-b px-5 py-4">
+				<h2 id="items-h" class="font-semibold">Items</h2>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+							<th>Product</th>
+							<th class="text-right">Ordered</th>
+							<th class="text-right">Received</th>
+							<th class="text-right">Unit cost</th>
+							<th class="text-right">Line cost</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for item in items %}
+						<tr>
+							<td>
+								<div class="flex flex-col">
+									<a href="{% url 'product-detail' item.product.pk %}" class="font-medium hover:underline">{{ item.product.name }}</a>
+									<span class="text-base-content/60 font-mono text-xs">{{ item.product.sku }}</span>
+								</div>
+							</td>
+							<td class="text-right font-mono">{{ item.quantity_ordered }}</td>
+							<td class="text-right font-mono">{{ item.quantity_received }}</td>
+							<td class="text-right font-mono">${{ item.unit_cost }}</td>
+							<td class="text-right font-mono font-medium">${{ item.line_cost|floatformat:"2g" }}</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="5" class="text-base-content/60 text-center">No items.</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<section aria-labelledby="mov-h" class="bg-base-100 border-base-300 rounded-box overflow-hidden border">
+			<div class="border-base-300 border-b px-5 py-4">
+				<h2 id="mov-h" class="font-semibold">Stock movements</h2>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+							<th>When</th>
+							<th>Type</th>
+							<th>Product</th>
+							<th>Warehouse</th>
+							<th class="text-right">Change</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for m in movements %}
+						<tr>
+							<td class="text-base-content/60">{{ m.created_at|date:"d M Y, H:i" }}</td>
+							<td>{{ m.get_movement_type_display }}</td>
+							<td><span class="font-mono text-xs">{{ m.inventory.product.sku }}</span></td>
+							<td>{{ m.inventory.warehouse.name }}</td>
+							<td class="text-right font-mono font-medium">{{ m.quantity_delta|stringformat:"+d" }}</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="5" class="text-base-content/60 text-center">No stock movements for this purchase order.</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</div>
+{% endblock %}

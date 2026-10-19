@@ -45,7 +45,7 @@
 				<tbody>
 					{% for po in page %}
 					<tr>
-						<td class="font-mono text-sm">{{ po.id|stringformat:"s"|slice:":8" }}</td>
+						<td class="font-mono text-sm"><a href="{% url 'purchase-order-detail' po.pk %}" class="hover:underline">{{ po.id|stringformat:"s"|slice:":8" }}</a></td>
 						<td class="font-medium">{{ po.supplier.name }}</td>
 						<td>
 							{{ po.warehouse.name }}

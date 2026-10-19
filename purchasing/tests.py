@@ -37,3 +37,29 @@ class PurchaseOrderListTests(TestCase):
     def test_status_filter(self):
         page = self.get(status="ORDERED").context["page"]
         self.assertEqual([p.pk for p in page], [self.ordered.pk])
+
+
+class PurchaseOrderDetailTests(PurchaseOrderListTests):
+    def test_detail(self):
+        from inventory.models import Inventory, StockMovement
+
+        bolt = Product.objects.get(sku="B")
+        row = Inventory.objects.create(product=bolt, warehouse=self.ordered.warehouse)
+        StockMovement.objects.create(
+            inventory=row, movement_type="RECEIPT", quantity_delta=6,
+            reference_type="PURCHASE_ORDER", reference_id=self.ordered.pk,
+        )
+        StockMovement.objects.create(inventory=row, movement_type="ADJUST", quantity_delta=1, reference_type="MANUAL")
+
+        ctx = self.client.get(reverse("purchase-order-detail", args=[self.ordered.pk])).context
+        self.assertEqual((ctx["units_ordered"], ctx["units_received"]), (14, 0))
+        self.assertEqual(ctx["total_cost"], Decimal("23.00"))
+        self.assertEqual([m.quantity_delta for m in ctx["movements"]], [6])
+
+    def test_list_links_to_detail(self):
+        self.assertContains(self.get(), reverse("purchase-order-detail", args=[self.ordered.pk]))
+
+    def test_unknown_po_is_404(self):
+        import uuid
+
+        self.assertEqual(self.client.get(reverse("purchase-order-detail", args=[uuid.uuid4()])).status_code, 404)
