@@ -170,3 +170,97 @@ class PurchaseOrderWorkflowTests(TestCase):
         po = self.make_po()
         for name in ("purchase-order-status", "purchase-order-receive"):
             self.assertEqual(self.client.get(reverse(name, args=[po.pk])).status_code, 405)
+
+
+class PurchaseOrderFormTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.acme = Supplier.objects.create(name="Acme", email="a@x.io")
+        cls.zed = Supplier.objects.create(name="Zed", email="z@x.io")
+        cls.pune = Warehouse.objects.create(name="Pune", location_code="PNQ")
+        cls.bolt = Product.objects.create(sku="B", name="Bolt", unit_price=Decimal("2.00"))
+        cls.nut = Product.objects.create(sku="N", name="Nut", unit_price=Decimal("1.00"))
+
+    def data(self, *lines, supplier=None, expected="2026-11-01"):
+        data = {
+            "supplier": (supplier or self.acme).pk,
+            "warehouse": self.pune.pk,
+            "expected_at": expected,
+            "form-TOTAL_FORMS": 6, "form-INITIAL_FORMS": 0,
+            "form-MIN_NUM_FORMS": 0, "form-MAX_NUM_FORMS": 1000,
+        }
+        for i in range(6):
+            product, qty, cost = lines[i] if i < len(lines) else ("", "", "")
+            data[f"form-{i}-product"] = getattr(product, "pk", product)
+            data[f"form-{i}-quantity_ordered"] = qty
+            data[f"form-{i}-unit_cost"] = cost
+        return data
+
+    def create(self, *lines, **kw):
+        return self.client.post(reverse("purchase-order-new"), self.data(*lines, **kw))
+
+    def test_creates_a_draft_with_items(self):
+        resp = self.create((self.bolt, 10, "1.50"), (self.nut, 4, "0.25"))
+        po = PurchaseOrder.objects.get()
+        self.assertRedirects(resp, reverse("purchase-order-detail", args=[po.pk]))
+        self.assertEqual(po.status, PurchaseOrder.Status.DRAFT)
+        self.assertEqual((po.supplier, po.warehouse), (self.acme, self.pune))
+        self.assertEqual(po.expected_at.date().isoformat(), "2026-11-01")
+        self.assertEqual(
+            sorted((i.product.sku, i.quantity_ordered, i.unit_cost) for i in po.items.all()),
+            [("B", 10, Decimal("1.50")), ("N", 4, Decimal("0.25"))],
+        )
+
+    def test_expected_date_is_optional(self):
+        self.create((self.bolt, 1, "1.00"), expected="")
+        self.assertIsNone(PurchaseOrder.objects.get().expected_at)
+
+    def test_rejects_bad_input(self):
+        self.assertContains(self.create(), "Add at least one item.")
+        self.assertContains(self.create((self.bolt, 1, "1"), (self.bolt, 2, "1")), "only once")
+        self.assertContains(self.create((self.bolt, 1, "")), "Pick a product, a quantity and a unit cost.")
+        self.assertContains(self.create((self.bolt, 0, "1")), "greater than or equal to 1")
+        self.assertContains(self.create((self.bolt, 1, "-1")), "greater than or equal to 0")
+        self.assertEqual(PurchaseOrder.objects.count(), 0)
+
+    def test_edit_replaces_header_and_lines(self):
+        self.create((self.bolt, 10, "1.50"))
+        po = PurchaseOrder.objects.get()
+        url = reverse("purchase-order-edit", args=[po.pk])
+
+        page = self.client.get(url)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'value="10"')
+
+        resp = self.client.post(url, self.data((self.nut, 3, "0.75"), supplier=self.zed, expected=""))
+        self.assertRedirects(resp, reverse("purchase-order-detail", args=[po.pk]))
+        po.refresh_from_db()
+        self.assertEqual(po.supplier, self.zed)
+        self.assertIsNone(po.expected_at)
+        self.assertEqual([(i.product.sku, i.quantity_ordered) for i in po.items.all()], [("N", 3)])
+
+    def test_only_drafts_can_be_edited(self):
+        self.create((self.bolt, 10, "1.50"))
+        po = PurchaseOrder.objects.get()
+        po.status = PurchaseOrder.Status.ORDERED
+        po.save()
+        url = reverse("purchase-order-edit", args=[po.pk])
+        self.assertRedirects(self.client.get(url), reverse("purchase-order-detail", args=[po.pk]))
+        self.client.post(url, self.data((self.nut, 3, "0.75"), supplier=self.zed))
+        po.refresh_from_db()
+        self.assertEqual(po.supplier, self.acme)
+        self.assertEqual(po.items.count(), 1)
+
+    def test_buttons_appear_where_expected(self):
+        self.assertContains(self.client.get(reverse("purchase-order-list")), reverse("purchase-order-new"))
+        self.create((self.bolt, 10, "1.50"))
+        po = PurchaseOrder.objects.get()
+        edit = reverse("purchase-order-edit", args=[po.pk])
+        detail = reverse("purchase-order-detail", args=[po.pk])
+        self.assertContains(self.client.get(detail), edit)
+        po.status = PurchaseOrder.Status.ORDERED
+        po.save()
+        self.assertNotContains(self.client.get(detail), edit)
+
+    def test_new_form_renders(self):
+        self.assertContains(self.client.get(reverse("purchase-order-new")), "Create draft")

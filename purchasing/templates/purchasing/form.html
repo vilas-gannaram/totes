@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}{% if po %}Edit purchase order{% else %}New purchase order{% endif %}{% endblock %}
+
+{% block content %}
+	<a href="{% if po %}{% url 'purchase-order-detail' po.pk %}{% else %}{% url 'purchase-order-list' %}{% endif %}" class="link link-hover text-base-content/60 mb-3 inline-block text-sm">← {% if po %}Purchase order{% else %}Purchasing{% endif %}</a>
+
+	<header class="mb-5">
+		<h1 class="text-3xl font-bold tracking-tight">{% if po %}Edit purchase order{% else %}New purchase order{% endif %}</h1>
+		<p class="text-base-content/60">Saved as a draft. Mark it as ordered from its page when it is sent.</p>
+	</header>
+
+	<form method="post" class="flex flex-col gap-6">
+		{% csrf_token %}
+
+		<section class="bg-base-100 border-base-300 rounded-box grid gap-4 border p-5 md:grid-cols-3">
+			{% for field in form %}
+			<div>
+				<label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium">{{ field.label }}</label>
+				{{ field }}
+				{% for error in field.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
+			</div>
+			{% endfor %}
+		</section>
+
+		<section aria-labelledby="items-h" class="bg-base-100 border-base-300 rounded-box overflow-hidden border">
+			<div class="border-base-300 border-b px-5 py-4">
+				<h2 id="items-h" class="font-semibold">Items</h2>
+				<p class="text-base-content/60 text-sm">Leave unused rows blank.</p>
+			</div>
+			{{ lines.management_form }}
+			{% if lines.non_form_errors %}
+			<div class="alert alert-soft alert-error m-4" role="alert">
+				{% for error in lines.non_form_errors %}<span>{{ error }}</span>{% endfor %}
+			</div>
+			{% endif %}
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+							<th>Product</th>
+							<th class="w-32">Quantity</th>
+							<th class="w-36">Unit cost</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for line in lines %}
+						<tr>
+							<td>
+								{{ line.product }}
+								{% for error in line.non_field_errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
+								{% for error in line.product.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
+							</td>
+							<td>
+								{{ line.quantity_ordered }}
+								{% for error in line.quantity_ordered.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
+							</td>
+							<td>
+								{{ line.unit_cost }}
+								{% for error in line.unit_cost.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<div class="flex gap-2">
+			<button type="submit" class="btn btn-primary">{% if po %}Save changes{% else %}Create draft{% endif %}</button>
+			<a href="{% if po %}{% url 'purchase-order-detail' po.pk %}{% else %}{% url 'purchase-order-list' %}{% endif %}" class="btn btn-ghost">Cancel</a>
+		</div>
+	</form>
+{% endblock %}

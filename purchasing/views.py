@@ -8,12 +8,16 @@ from config.listing import filter_params, status_tabs
 from inventory.models import StockMovement
 
 from .models import PurchaseOrder
+from .forms import LineFormSet, PurchaseOrderForm
 from .services import (
     InvalidReceipt,
     InvalidTransition,
+    NotEditable,
     allowed_transitions,
     change_status,
+    create_purchase_order,
     receive,
+    update_purchase_order,
 )
 
 PAGE_SIZE = 25
@@ -83,6 +87,7 @@ def purchase_order_detail(request, pk):
             "units_received": sum(i.quantity_received for i in items),
             "total_cost": sum(i.line_cost for i in items),
             "movements": movements,
+            "can_edit": po.status == PurchaseOrder.Status.DRAFT,
             "can_receive": po.status == PurchaseOrder.Status.ORDERED,
             "actions": [
                 {"status": status, "label": label, "danger": status == PurchaseOrder.Status.CANCELLED}
@@ -125,3 +130,62 @@ def purchase_order_receive(request, pk):
             + (" Purchase order complete." if po.status == PurchaseOrder.Status.RECEIVED else ""),
         )
     return redirect("purchase-order-detail", pk=po.pk)
+
+
+def _po_form(request, po=None):
+    """Shared by the new and edit pages; `po` is the draft being edited, if any."""
+    if request.method == "POST":
+        form, lines = PurchaseOrderForm(request.POST), LineFormSet(request.POST)
+    elif po is None:
+        form, lines = PurchaseOrderForm(), LineFormSet()
+    else:
+        form = PurchaseOrderForm(
+            initial={
+                "supplier": po.supplier_id,
+                "warehouse": po.warehouse_id,
+                "expected_at": po.expected_at.date() if po.expected_at else None,
+            }
+        )
+        lines = LineFormSet(
+            initial=[
+                {"product": i.product_id, "quantity_ordered": i.quantity_ordered, "unit_cost": i.unit_cost}
+                for i in po.items.order_by("product__sku")
+            ]
+        )
+
+    if request.method == "POST" and form.is_valid() and lines.is_valid():
+        args = (
+            form.cleaned_data["supplier"],
+            form.cleaned_data["warehouse"],
+            form.cleaned_data["expected_at"],
+            lines.lines(),
+        )
+        if po is None:
+            saved = create_purchase_order(*args)
+            messages.success(request, "Purchase order created as a draft.")
+        else:
+            try:
+                saved = update_purchase_order(po, *args)
+            except NotEditable as exc:
+                messages.error(request, str(exc))
+                return redirect("purchase-order-detail", pk=po.pk)
+            messages.success(request, "Purchase order updated.")
+        return redirect("purchase-order-detail", pk=saved.pk)
+
+    return render(
+        request,
+        "purchasing/form.html",
+        {"form": form, "lines": lines, "po": po},
+    )
+
+
+def purchase_order_new(request):
+    return _po_form(request)
+
+
+def purchase_order_edit(request, pk):
+    po = get_object_or_404(PurchaseOrder.objects.select_related("supplier", "warehouse"), pk=pk)
+    if po.status != PurchaseOrder.Status.DRAFT:
+        messages.error(request, "Only draft purchase orders can be edited.")
+        return redirect("purchase-order-detail", pk=po.pk)
+    return _po_form(request, po)

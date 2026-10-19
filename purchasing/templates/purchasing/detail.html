@@ -22,6 +22,9 @@
 			{% else %}
 			<span class="badge badge-soft badge-warning">Draft</span>
 			{% endif %}
+			{% if can_edit %}
+			<a href="{% url 'purchase-order-edit' po.pk %}" class="btn btn-sm btn-outline">Edit</a>
+			{% endif %}
 			{% for action in actions %}
 			<form method="post" action="{% url 'purchase-order-status' po.pk %}"{% if action.danger %} onsubmit="return confirm('Cancel this purchase order?')"{% endif %}>
 				{% csrf_token %}

@@ -1,5 +1,8 @@
+from datetime import datetime, time
+
 from django.db import transaction
 from django.db.models import F
+from django.utils import timezone
 
 from inventory.models import Inventory, StockMovement
 
@@ -88,4 +91,45 @@ def receive(po, quantities):
     ).exists():
         po.status = PurchaseOrder.Status.RECEIVED
         po.save(update_fields=["status"])
+    return po
+
+
+class NotEditable(Exception):
+    pass
+
+
+def _expected_datetime(day):
+    if day is None:
+        return None
+    return timezone.make_aware(datetime.combine(day, time.min))
+
+
+def _write_items(po, lines):
+    PurchaseOrderItem.objects.bulk_create(
+        PurchaseOrderItem(purchase_order=po, product=product, quantity_ordered=quantity, unit_cost=unit_cost)
+        for product, quantity, unit_cost in lines
+    )
+
+
+@transaction.atomic
+def create_purchase_order(supplier, warehouse, expected_on, lines):
+    """New DRAFT purchase order. `lines` is [(product, quantity, unit_cost)], products distinct."""
+    po = PurchaseOrder.objects.create(
+        supplier=supplier, warehouse=warehouse, expected_at=_expected_datetime(expected_on)
+    )
+    _write_items(po, lines)
+    return po
+
+
+@transaction.atomic
+def update_purchase_order(po, supplier, warehouse, expected_on, lines):
+    """Replace a DRAFT purchase order's header and lines. Raises NotEditable otherwise."""
+    po = PurchaseOrder.objects.select_for_update().get(pk=po.pk)
+    if po.status != PurchaseOrder.Status.DRAFT:
+        raise NotEditable("Only draft purchase orders can be edited")
+    po.supplier, po.warehouse = supplier, warehouse
+    po.expected_at = _expected_datetime(expected_on)
+    po.save(update_fields=["supplier", "warehouse", "expected_at"])
+    po.items.all().delete()
+    _write_items(po, lines)
     return po
