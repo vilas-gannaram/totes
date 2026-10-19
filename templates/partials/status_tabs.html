@@ -1,0 +1,13 @@
+			<div role="tablist" class="flex flex-wrap gap-1">
+				{% for tab in tabs %}
+				<a
+					role="tab"
+					href="?status={{ tab.id }}{% if tab_qs %}&amp;{{ tab_qs }}{% endif %}"
+					aria-selected="{{ tab.active|yesno:'true,false' }}"
+					class="btn btn-sm {% if tab.active %}btn-neutral{% else %}btn-ghost{% endif %}"
+				>
+					{{ tab.label }}
+					<span class="font-mono text-xs opacity-70">{{ tab.count }}</span>
+				</a>
+				{% endfor %}
+			</div>

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+	<header class="mb-5">
+		<h1 class="text-3xl font-bold tracking-tight">Orders</h1>
+		<p class="text-base-content/60">
+			{{ page.paginator.count }} order{{ page.paginator.count|pluralize }}
+		</p>
+	</header>
+
+	<section class="bg-base-100 border-base-300 overflow-hidden rounded-box border">
+		<div class="border-base-300 flex flex-wrap items-center justify-between gap-3 border-b p-3">
+			{% include "partials/status_tabs.html" %}
+
+			<form method="get" class="flex flex-wrap gap-2">
+				<input type="hidden" name="status" value="{{ status }}" />
+				<input
+					type="search"
+					name="q"
+					value="{{ q }}"
+					placeholder="Filter by customer"
+					aria-label="Filter orders"
+					class="input input-sm w-60"
+				/>
+				<button type="submit" class="btn btn-sm btn-primary">Filter</button>
+			</form>
+		</div>
+
+		<div class="overflow-x-auto">
+			<table class="table">
+				<thead>
+					<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+						<th>Order</th>
+						<th>Customer</th>
+						<th>Placed</th>
+						<th class="text-right">Items</th>
+						<th class="text-right">Total</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for order in page %}
+					<tr>
+						<td class="font-mono text-sm">{{ order.id|stringformat:"s"|slice:":8" }}</td>
+						<td>
+							<div class="flex flex-col">
+								<span class="font-medium">{{ order.customer.name }}</span>
+								<span class="text-base-content/60 text-xs">{{ order.customer.email }}</span>
+							</div>
+						</td>
+						<td>{{ order.created_at|date:"M j, Y" }}</td>
+						<td class="text-right font-mono">{{ order.item_count }}</td>
+						<td class="text-right font-mono font-medium">${{ order.total_amount }}</td>
+						<td>
+							{% if order.status == "PAID" %}
+							<span class="badge badge-soft badge-info">Paid</span>
+							{% elif order.status == "SHIPPED" %}
+							<span class="badge badge-soft badge-success">Shipped</span>
+							{% elif order.status == "CANCELLED" %}
+							<span class="badge badge-soft badge-error">Cancelled</span>
+							{% else %}
+							<span class="badge badge-soft badge-warning">Pending</span>
+							{% endif %}
+						</td>
+					</tr>
+					{% empty %}
+					<tr>
+						<td colspan="6" class="text-base-content/60 text-center">No orders match.</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+		{% include "partials/pagination.html" %}
+	</section>
+{% endblock %}
