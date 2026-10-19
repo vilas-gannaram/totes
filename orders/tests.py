@@ -39,3 +39,41 @@ class OrderListTests(TestCase):
         ctx = self.get(q="bob").context
         self.assertEqual(len(ctx["page"]), 1)
         self.assertEqual({t["id"]: t["count"] for t in ctx["tabs"]}["all"], 1)
+
+
+class OrderDetailTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from inventory.models import Inventory, StockMovement
+        from warehouses.models import Warehouse
+
+        ada = Customer.objects.create(name="Ada", email="ada@x.io")
+        bolt = Product.objects.create(sku="B", name="Bolt", unit_price=Decimal("2.00"))
+        cls.order = Order.objects.create(customer=ada, total_amount=Decimal("7.50"))
+        OrderItem.objects.create(order=cls.order, product=bolt, quantity=3, unit_price_at_order=Decimal("2.50"))
+        row = Inventory.objects.create(
+            product=bolt, warehouse=Warehouse.objects.create(name="Pune", location_code="PNQ")
+        )
+        StockMovement.objects.create(
+            inventory=row, movement_type="RESERVE", quantity_delta=-3,
+            reference_type="ORDER", reference_id=cls.order.pk,
+        )
+        StockMovement.objects.create(  # someone else's movement
+            inventory=row, movement_type="RECEIPT", quantity_delta=9, reference_type="MANUAL",
+        )
+
+    def test_detail(self):
+        resp = self.client.get(reverse("order-detail", args=[self.order.pk]))
+        ctx = resp.context
+        self.assertEqual(ctx["units"], 3)
+        self.assertEqual(ctx["items_total"], Decimal("7.50"))
+        self.assertEqual(ctx["items"][0].line_total, Decimal("7.50"))
+        self.assertEqual([m.quantity_delta for m in ctx["movements"]], [-3])
+
+    def test_unknown_order_is_404(self):
+        import uuid
+
+        self.assertEqual(self.client.get(reverse("order-detail", args=[uuid.uuid4()])).status_code, 404)
+
+    def test_list_links_to_detail(self):
+        self.assertContains(self.client.get(reverse("order-list")), reverse("order-detail", args=[self.order.pk]))

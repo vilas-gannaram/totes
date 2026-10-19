@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Order {{ order.id|stringformat:"s"|slice:":8" }}{% endblock %}
+
+{% block content %}
+	<a href="{% url 'order-list' %}" class="link link-hover text-base-content/60 mb-3 inline-block text-sm">← Orders</a>
+
+	<header class="mb-5 flex flex-wrap items-start justify-between gap-3">
+		<div>
+			<h1 class="font-mono text-3xl font-bold tracking-tight">{{ order.id|stringformat:"s"|slice:":8" }}</h1>
+			<p class="text-base-content/60">
+				{{ order.customer.name }} · placed {{ order.created_at|date:"d M Y, H:i" }}
+			</p>
+		</div>
+		{% if order.status == "PAID" %}
+		<span class="badge badge-soft badge-info">Paid</span>
+		{% elif order.status == "SHIPPED" %}
+		<span class="badge badge-soft badge-success">Shipped</span>
+		{% elif order.status == "CANCELLED" %}
+		<span class="badge badge-soft badge-error">Cancelled</span>
+		{% else %}
+		<span class="badge badge-soft badge-warning">Pending</span>
+		{% endif %}
+	</header>
+
+	<section aria-label="Key figures" class="mb-6 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Total</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">${{ order.total_amount|floatformat:"2g" }}</span>
+			<span class="text-base-content/60 text-sm">{{ items|length }} line{{ items|length|pluralize }}</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Units</span>
+			<span class="font-mono text-3xl font-medium tracking-tight">{{ units }}</span>
+			<span class="text-base-content/60 text-sm">Across all lines</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Customer</span>
+			<span class="truncate text-xl font-medium tracking-tight">{{ order.customer.name }}</span>
+			<span class="text-base-content/60 truncate text-sm">{{ order.customer.email }}</span>
+		</div>
+		<div class="bg-base-100 border-base-300 rounded-box flex flex-col gap-2 border p-5">
+			<span class="text-base-content/60 text-sm font-medium">Last updated</span>
+			<span class="text-xl font-medium tracking-tight">{{ order.updated_at|date:"d M Y" }}</span>
+			<span class="text-base-content/60 text-sm">{{ order.updated_at|date:"H:i" }}</span>
+		</div>
+	</section>
+
+	<div class="flex flex-col gap-6">
+		<section aria-labelledby="items-h" class="bg-base-100 border-base-300 rounded-box overflow-hidden border">
+			<div class="border-base-300 border-b px-5 py-4">
+				<h2 id="items-h" class="font-semibold">Items</h2>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+							<th>Product</th>
+							<th class="text-right">Quantity</th>
+							<th class="text-right">Unit price</th>
+							<th class="text-right">Line total</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for item in items %}
+						<tr>
+							<td>
+								<div class="flex flex-col">
+									<a href="{% url 'product-detail' item.product.pk %}" class="font-medium hover:underline">{{ item.product.name }}</a>
+									<span class="text-base-content/60 font-mono text-xs">{{ item.product.sku }}</span>
+								</div>
+							</td>
+							<td class="text-right font-mono">{{ item.quantity }}</td>
+							<td class="text-right font-mono">${{ item.unit_price_at_order }}</td>
+							<td class="text-right font-mono font-medium">${{ item.line_total|floatformat:"2g" }}</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="4" class="text-base-content/60 text-center">No items.</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<section aria-labelledby="mov-h" class="bg-base-100 border-base-300 rounded-box overflow-hidden border">
+			<div class="border-base-300 border-b px-5 py-4">
+				<h2 id="mov-h" class="font-semibold">Stock movements</h2>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr class="text-base-content/60 text-xs uppercase tracking-wide">
+							<th>When</th>
+							<th>Type</th>
+							<th>Product</th>
+							<th>Warehouse</th>
+							<th class="text-right">Change</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for m in movements %}
+						<tr>
+							<td class="text-base-content/60">{{ m.created_at|date:"d M Y, H:i" }}</td>
+							<td>{{ m.get_movement_type_display }}</td>
+							<td><span class="font-mono text-xs">{{ m.inventory.product.sku }}</span></td>
+							<td>{{ m.inventory.warehouse.name }}</td>
+							<td class="text-right font-mono font-medium">{{ m.quantity_delta|stringformat:"+d" }}</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="5" class="text-base-content/60 text-center">No stock movements for this order.</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</div>
+{% endblock %}
