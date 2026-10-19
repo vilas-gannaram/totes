@@ -11,7 +11,9 @@ Inventory management system, built with Django.
 - Server-rendered templates (Django templates)
 - [daisyUI](https://daisyui.com/docs/install/django/) + Tailwind CSS
   (standalone binary, no Node.js) and self-hosted Manrope/Geist Mono fonts
-  for styling
+  for styling. Several themes (Nord by default, plus Corporate, Emerald,
+  Winter, Dim and the custom Depot) with a picker at the bottom of the
+  sidebar; the choice is stored in the browser.
 
 ## Getting started
 
@@ -63,9 +65,9 @@ registration, views, urls, and templates. Further work is tracked in
 | `warehouses` | `Warehouse`                    | list                                   |
 | `inventory`  | `Inventory`, `StockMovement`   | list (status tabs, filters, pagination) |
 | `customers`  | `Customer`                     | list                                   |
-| `orders`     | `Order`, `OrderItem`           | list                                   |
+| `orders`     | `Order`, `OrderItem`           | list (status tabs), detail, new order  |
 | `suppliers`  | `Supplier`                     | list                                   |
-| `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | list                             |
+| `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | list (status tabs), detail       |
 
 The dashboard lives at `/`, served from `config`.
 
@@ -78,10 +80,38 @@ static/       css/ (Tailwind + daisyUI build), fonts/ (Manrope + Geist Mono, sel
 manage.py     Django's CLI entrypoint
 ```
 
+## Workflows
+
+Stock only changes through code that also writes the `StockMovement`
+ledger, so every counter can be explained from history.
+
+**Orders** (`orders/services.py`)
+
+- *New order* (`/orders/new/`): pick a customer and up to six products. The
+  order is created `PENDING` and the stock is reserved, taken from the
+  warehouses holding the most first (`RESERVE` rows; available goes to
+  reserved).
+- *Order detail*: `PENDING` can be marked paid or cancelled, `PAID` shipped
+  or cancelled. Shipping clears the reservation (a `SHIP` row with delta 0,
+  since reserving already took the units out of available). Cancelling
+  returns it (`RELEASE` rows). Other transitions are rejected.
+
+**Purchase orders** (`purchasing/services.py`)
+
+- `DRAFT` can be marked ordered or cancelled; `ORDERED` can be cancelled
+  while nothing has been received.
+- On an ordered PO, the *Receive now* boxes book units per line into the
+  PO's warehouse (`RECEIPT` rows, creating the inventory row if needed).
+  Partial receipts are fine; the PO becomes `RECEIVED` when every line is
+  complete.
+- There is no form to create a purchase order yet (admin or `seed_demo`).
+
 ## Common commands
 
 See `make help` for the full list (`migrate`, `makemigrations`, `shell`,
-`superuser`, `test`, ...).
+`superuser`, `test`, ...). `make css-build` is needed after pulling changes
+that touch templates or `static/css/input.css`, because the compiled
+`output.css` is not committed.
 
 ## Docs
 
