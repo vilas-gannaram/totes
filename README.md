@@ -53,16 +53,27 @@ The command lives in `config/management/commands/seed_demo.py`.
 
 ## Project structure
 
-Each domain area is its own Django app (`products`, `warehouses`,
-`inventory`, and more to come per `TODO.md`), with its own models, admin
-registration, views, urls, and templates.
+Each domain area is its own Django app, with its own models, admin
+registration, views, urls, and templates. Further work is tracked in
+`TODO.md`.
+
+| App          | Models                         | Pages                                  |
+| ------------ | ------------------------------ | -------------------------------------- |
+| `products`   | `Product`                      | list (filters, stock totals), detail   |
+| `warehouses` | `Warehouse`                    | list                                   |
+| `inventory`  | `Inventory`, `StockMovement`   | list (status tabs, filters, pagination) |
+| `customers`  | `Customer`                     | list                                   |
+| `orders`     | `Order`, `OrderItem`           | list                                   |
+| `suppliers`  | `Supplier`                     | list                                   |
+| `purchasing` | `PurchaseOrder`, `PurchaseOrderItem` | list                             |
+
+The dashboard lives at `/`, served from `config`.
 
 ```
-config/       project settings, root URL config
-products/     product catalog app
-warehouses/   warehouse app
-inventory/    stock levels + movement ledger app
-templates/    shared base.html (root-level, per app-dirs live in <app>/templates/<app>/)
+config/       project settings, root URLs, dashboard view, seed_demo command
+<app>/        the seven domain apps above
+templates/    shared base.html, dashboard, placeholder, partials/ (root-level;
+              per-app templates live in <app>/templates/<app>/)
 static/       css/ (Tailwind + daisyUI build), fonts/ (Manrope + Geist Mono, self-hosted)
 manage.py     Django's CLI entrypoint
 ```
@@ -76,3 +87,5 @@ See `make help` for the full list (`migrate`, `makemigrations`, `shell`,
 
 - `schema.md` — data model (ERD), app grouping, and user journeys
 - `TODO.md` — build roadmap
+- `AUDIT.md` — audit findings and the UI page plan
+- `LEARNING.md` — Django learning notes
