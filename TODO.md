@@ -104,8 +104,10 @@ UI items below.
       of just overwriting the counter
 - [x] Low-stock "Needs reorder" panel on the dashboard (status logic in
       `inventory.views.with_status`)
-- [ ] Order lifecycle: place → reserve stock → pay → ship, with status
-      transitions validated server-side
+- [x] Order lifecycle: place → reserve stock → pay → ship (or cancel and
+      release), transitions validated server-side in `orders.services`
+- [ ] `seed_demo` shipped orders log `SHIP -qty`, but the real flow logs
+      `SHIP 0` after `RESERVE -qty`; align the seed with the real flow
 - [ ] Purchase order lifecycle: draft → ordered → received, receiving
       increments inventory via `StockMovement`
 
