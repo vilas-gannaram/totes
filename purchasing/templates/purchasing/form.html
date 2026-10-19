@@ -34,35 +34,34 @@
 				{% for error in lines.non_form_errors %}<span>{{ error }}</span>{% endfor %}
 			</div>
 			{% endif %}
-			<div class="overflow-x-auto">
-				<table class="table">
-					<thead>
-						<tr class="text-base-content/60 text-xs uppercase tracking-wide">
-							<th>Product</th>
-							<th class="w-32">Quantity</th>
-							<th class="w-36">Unit cost</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for line in lines %}
-						<tr>
-							<td>
-								{{ line.product }}
-								{% for error in line.non_field_errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
-								{% for error in line.product.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
-							</td>
-							<td>
-								{{ line.quantity_ordered }}
-								{% for error in line.quantity_ordered.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
-							</td>
-							<td>
-								{{ line.unit_cost }}
-								{% for error in line.unit_cost.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
-							</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
+			<div class="px-5 py-3">
+				<div class="text-base-content/60 hidden gap-3 pb-2 text-xs font-semibold uppercase tracking-wide sm:grid sm:grid-cols-[1fr_8rem_9rem]">
+					<span>Product</span>
+					<span>Quantity</span>
+					<span>Unit cost</span>
+				</div>
+				<div class="flex flex-col gap-4 sm:gap-2">
+					{% for line in lines %}
+					<div class="grid items-start gap-2 sm:gap-3 sm:grid-cols-[1fr_8rem_9rem]">
+						<div>
+							<span class="text-base-content/60 mb-1 block text-xs font-medium sm:hidden">Product</span>
+							{{ line.product }}
+							{% for error in line.non_field_errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
+							{% for error in line.product.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
+						</div>
+						<div>
+							<span class="text-base-content/60 mb-1 block text-xs font-medium sm:hidden">Quantity</span>
+							{{ line.quantity_ordered }}
+							{% for error in line.quantity_ordered.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
+						</div>
+						<div>
+							<span class="text-base-content/60 mb-1 block text-xs font-medium sm:hidden">Unit cost</span>
+							{{ line.unit_cost }}
+							{% for error in line.unit_cost.errors %}<p class="text-error mt-1 text-sm">{{ error }}</p>{% endfor %}
+						</div>
+					</div>
+					{% endfor %}
+				</div>
 			</div>
 		</section>
 

@@ -30,7 +30,7 @@ class LineForm(forms.Form):
         sellable_products(),
         required=False,
         empty_label="Select a product",
-        widget=forms.Select(attrs={"class": "select select-sm w-full min-w-64"}),
+        widget=forms.Select(attrs={"class": "select select-sm w-full"}),
     )
     quantity = forms.IntegerField(
         min_value=1, required=False, widget=forms.NumberInput(attrs={"class": "input input-sm w-full"})
