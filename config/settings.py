@@ -12,8 +12,8 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 import os
 from pathlib import Path
-from urllib.parse import unquote, urlparse
 
+import dj_database_url
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -88,25 +88,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
-def database_from_url(url):
-    """Django DATABASES entry for a postgres:// URL (percent-encoding in the password is decoded)."""
-    parts = urlparse(url)
-    if parts.scheme not in ("postgres", "postgresql"):
-        raise ValueError(f"DATABASE_URL must be a postgres:// or postgresql:// URL, got {parts.scheme!r}")
-    return {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": unquote(parts.path.lstrip("/")),
-        "USER": unquote(parts.username or ""),
-        "PASSWORD": unquote(parts.password or ""),
-        "HOST": parts.hostname or "",
-        "PORT": parts.port or "",
-        "OPTIONS": {"sslmode": "require"},
-    }
-
-
 # Postgres (Supabase) when DATABASE_URL is set, sqlite for local work without it.
 if os.environ.get("DATABASE_URL"):
-    DATABASES = {"default": database_from_url(os.environ["DATABASE_URL"])}
+    DATABASES = {"default": dj_database_url.parse(os.environ["DATABASE_URL"], ssl_require=True)}
 else:
     DATABASES = {
         "default": {
