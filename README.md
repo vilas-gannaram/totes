@@ -6,8 +6,8 @@ Inventory management system, built with Django.
 
 - Python 3.14, [uv](https://docs.astral.sh/uv/) for dependency management
 - Django 6.1
-- Postgres (Supabase) — not yet wired up, currently running on sqlite for
-  local development
+- Postgres (Supabase) via `DATABASE_URL` in `.env` (see `.env.example`);
+  without it the app falls back to sqlite (`db.sqlite3`)
 - Server-rendered templates (Django templates)
 - [daisyUI](https://daisyui.com/docs/install/django/) + Tailwind CSS
   (standalone binary, no Node.js) and self-hosted Manrope/Geist Mono fonts
@@ -21,6 +21,7 @@ Inventory management system, built with Django.
 make install     # uv sync
 make css-install  # download tailwindcss + daisyUI (one-time; no Node.js needed)
 make css-build    # compile static/css/output.css
+cp .env.example .env   # then set DATABASE_URL (skip to use sqlite)
 make migrate      # apply migrations
 make superuser    # create an admin login
 make run          # start the dev server at http://127.0.0.1:8000/
