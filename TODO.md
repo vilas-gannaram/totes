@@ -88,7 +88,8 @@ UI items below.
       scoped); dashboard "Open purchase orders" card depends on `purchasing`
 - [x] List pages for the new apps (see `AUDIT.md` §3): customers, orders
       (status tabs), suppliers, purchase orders (status tabs)
-- [ ] Detail pages: order (+ new order), purchase order
+- [x] Detail pages: order, purchase order (read-only; items + ledger movements)
+- [ ] New order form
 - [ ] Decide the design's action buttons: New product, Reorder, Export CSV,
       Scan barcode (build or drop each)
 - [ ] `ModelForm`s for create/edit, plus flash messages
