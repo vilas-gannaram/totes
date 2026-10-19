@@ -156,3 +156,88 @@ class OrderNewTests(TestCase):
 
     def test_list_links_to_new_order(self):
         self.assertContains(self.client.get(reverse("order-list")), reverse("order-new"))
+
+
+class OrderStatusTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from inventory.models import Inventory
+        from warehouses.models import Warehouse
+
+        cls.ada = Customer.objects.create(name="Ada", email="ada@x.io")
+        cls.bolt = Product.objects.create(sku="B", name="Bolt", unit_price=Decimal("2.00"))
+        pune = Warehouse.objects.create(name="Pune", location_code="PNQ")
+        delhi = Warehouse.objects.create(name="Delhi", location_code="DEL")
+        cls.pune = Inventory.objects.create(product=cls.bolt, warehouse=pune, quantity_available=5)
+        cls.delhi = Inventory.objects.create(product=cls.bolt, warehouse=delhi, quantity_available=3)
+
+    def place(self):
+        from .services import place_order
+
+        return place_order(self.ada, [(self.bolt, 6)])  # 5 from Pune, 1 from Delhi
+
+    def stock(self):
+        for row in (self.pune, self.delhi):
+            row.refresh_from_db()
+        return [(r.quantity_available, r.quantity_reserved) for r in (self.pune, self.delhi)]
+
+    def post(self, order, status):
+        return self.client.post(reverse("order-status", args=[order.pk]), {"status": status})
+
+    def test_pay_then_ship_clears_reserved_without_touching_available(self):
+        from inventory.models import StockMovement
+
+        order = self.place()
+        self.assertEqual(self.stock(), [(0, 5), (2, 1)])
+        self.post(order, "PAID")
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PAID)
+        self.assertEqual(self.stock(), [(0, 5), (2, 1)])
+
+        self.assertRedirects(self.post(order, "SHIPPED"), reverse("order-detail", args=[order.pk]))
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.SHIPPED)
+        self.assertEqual(self.stock(), [(0, 0), (2, 0)])
+        ships = StockMovement.objects.filter(movement_type="SHIP", reference_id=order.pk)
+        self.assertEqual(ships.count(), 2)
+        self.assertEqual({m.quantity_delta for m in ships}, {0})
+
+    def test_cancel_releases_stock_and_ledger_stays_consistent(self):
+        from django.db.models import Sum
+
+        from inventory.models import Inventory
+
+        order = self.place()
+        self.post(order, "PAID")
+        self.post(order, "CANCELLED")
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.CANCELLED)
+        self.assertEqual(self.stock(), [(5, 0), (3, 0)])
+        # these rows were created without receipt movements, so the ledger nets to 0 change
+        for row in Inventory.objects.annotate(total=Sum("movements__quantity_delta")):
+            self.assertEqual(row.total or 0, 0)
+
+    def test_invalid_transitions_change_nothing(self):
+        order = self.place()
+        self.post(order, "SHIPPED")  # must be paid first
+        self.post(order, "bogus")
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.PENDING)
+        self.assertEqual(self.stock(), [(0, 5), (2, 1)])
+
+        self.post(order, "CANCELLED")
+        self.post(order, "CANCELLED")  # second cancel must not release twice
+        self.assertEqual(self.stock(), [(5, 0), (3, 0)])
+
+    def test_get_not_allowed(self):
+        order = self.place()
+        self.assertEqual(self.client.get(reverse("order-status", args=[order.pk])).status_code, 405)
+
+    def test_detail_offers_only_valid_actions(self):
+        order = self.place()
+        labels = lambda: [a["label"] for a in self.client.get(reverse("order-detail", args=[order.pk])).context["actions"]]
+        self.assertEqual(labels(), ["Mark as paid", "Cancel order"])
+        self.post(order, "PAID")
+        self.assertEqual(labels(), ["Mark as shipped", "Cancel order"])
+        self.post(order, "SHIPPED")
+        self.assertEqual(labels(), [])

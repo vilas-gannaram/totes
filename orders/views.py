@@ -2,13 +2,20 @@ from django.core.paginator import Paginator
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from config.listing import filter_params, status_tabs
 from inventory.models import StockMovement
 
 from .forms import LineFormSet, OrderForm
 from .models import Order
-from .services import InsufficientStock, place_order
+from .services import (
+    InsufficientStock,
+    InvalidTransition,
+    allowed_transitions,
+    change_status,
+    place_order,
+)
 
 PAGE_SIZE = 25
 
@@ -62,8 +69,24 @@ def order_detail(request, pk):
             "units": sum(i.quantity for i in items),
             "items_total": sum(i.line_total for i in items),
             "movements": movements,
+            "actions": [
+                {"status": status, "label": label, "danger": status == Order.Status.CANCELLED}
+                for status, label in allowed_transitions(order).items()
+            ],
         },
     )
+
+
+@require_POST
+def order_status(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    try:
+        order = change_status(order, request.POST.get("status", ""))
+    except InvalidTransition as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(request, f"Order is now {order.get_status_display().lower()}.")
+    return redirect("order-detail", pk=order.pk)
 
 
 def order_new(request):

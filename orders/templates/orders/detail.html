@@ -12,15 +12,24 @@
 				{{ order.customer.name }} · placed {{ order.created_at|date:"d M Y, H:i" }}
 			</p>
 		</div>
-		{% if order.status == "PAID" %}
-		<span class="badge badge-soft badge-info">Paid</span>
-		{% elif order.status == "SHIPPED" %}
-		<span class="badge badge-soft badge-success">Shipped</span>
-		{% elif order.status == "CANCELLED" %}
-		<span class="badge badge-soft badge-error">Cancelled</span>
-		{% else %}
-		<span class="badge badge-soft badge-warning">Pending</span>
-		{% endif %}
+		<div class="flex flex-wrap items-center gap-2">
+			{% if order.status == "PAID" %}
+			<span class="badge badge-soft badge-info">Paid</span>
+			{% elif order.status == "SHIPPED" %}
+			<span class="badge badge-soft badge-success">Shipped</span>
+			{% elif order.status == "CANCELLED" %}
+			<span class="badge badge-soft badge-error">Cancelled</span>
+			{% else %}
+			<span class="badge badge-soft badge-warning">Pending</span>
+			{% endif %}
+			{% for action in actions %}
+			<form method="post" action="{% url 'order-status' order.pk %}"{% if action.danger %} onsubmit="return confirm('Cancel this order and release its stock?')"{% endif %}>
+				{% csrf_token %}
+				<input type="hidden" name="status" value="{{ action.status }}" />
+				<button type="submit" class="btn btn-sm {% if action.danger %}btn-outline btn-error{% else %}btn-primary{% endif %}">{{ action.label }}</button>
+			</form>
+			{% endfor %}
+		</div>
 	</header>
 
 	<section aria-label="Key figures" class="mb-6 grid grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4">
