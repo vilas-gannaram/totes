@@ -1,4 +1,4 @@
-.PHONY: help install css-install css-build css-watch run migrate makemigrations shell superuser test
+.PHONY: help install css-install css-build css-watch run migrate makemigrations shell superuser seed reseed test
 
 help:
 	@echo "install         install python dependencies via uv"
@@ -10,6 +10,8 @@ help:
 	@echo "makemigrations  generate migrations"
 	@echo "shell           open the django shell"
 	@echo "superuser       create a django superuser"
+	@echo "seed            fill an empty database with demo data"
+	@echo "reseed          wipe the domain data and reseed (asks first)"
 	@echo "test            run tests"
 
 install:
@@ -38,6 +40,12 @@ shell:
 
 superuser:
 	uv run python manage.py createsuperuser
+
+seed:
+	uv run python manage.py seed_demo
+
+reseed:
+	uv run python manage.py seed_demo --reset
 
 test:
 	uv run python manage.py test
