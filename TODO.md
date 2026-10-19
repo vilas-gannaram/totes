@@ -75,8 +75,7 @@ UI items below.
       stock, open purchase orders), "Needs reorder" table, stock value by
       category, recent `StockMovement` list; nav link
 - [ ] Dashboard: warehouse filter and search from the design, "Reorder"
-      button (unblocked now that the PO workflow exists; needs the PO
-      create form to land somewhere)
+      button (unblocked now that POs can be created from the UI)
 - [x] Placeholder pages for every sidebar link (Customers, Orders,
       Suppliers, Purchasing); replace each with the real page
 - [x] Product detail page (`/products/<id>/`): per-warehouse stock,
@@ -94,8 +93,8 @@ UI items below.
 - [ ] Decide the design's action buttons: New product, Reorder, Export CSV,
       Scan barcode (build or drop each)
 - [x] Flash messages (`messages` rendered in `base.html`)
-- [ ] `ModelForm`s for create/edit of products, warehouses, customers,
-      suppliers, purchase orders (orders already have a new-order form)
+- [ ] `ModelForm`s for create/edit of products, warehouses, customers and
+      suppliers (orders and purchase orders already have their own forms)
 - [x] Theme picker in the sidebar (nord default; corporate, emerald, winter,
       dim, depot), choice kept in `localStorage`; sidebar is sticky and one
       screen tall on desktop
@@ -117,8 +116,9 @@ UI items below.
 - [x] Purchase order lifecycle: draft → ordered → received; partial
       receiving per line increments inventory via RECEIPT `StockMovement`s
       (`purchasing.services`)
-- [ ] New / edit purchase order form (POs can only be created in the admin
-      or by `seed_demo` for now)
+- [x] New / edit purchase order form (`/purchasing/new/`, `/<id>/edit/`):
+      supplier, warehouse, optional expected date and lines; saved as a draft,
+      only drafts are editable
 
 ## Dev tooling
 

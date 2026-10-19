@@ -220,13 +220,13 @@ Status changes are checked on the server, so an order can't jump from
 
 The purchasing role works from what is running low rather than from what has
 arrived. _(partly built: the dashboard lists products that need reorder and
-the PO page handles ordering and receiving; there is no form to create a
-purchase order yet)_
+the PO pages handle creating, ordering and receiving; there is no "reorder
+this product" shortcut yet)_
 
 1. They look for products where total available stock across warehouses has
    fallen to `Product.reorder_point` or below.
 2. For each one they pick a `Supplier` and create a `PurchaseOrder` in
-   `DRAFT` _(todo: for now in the admin)_ for a target `Warehouse`, with one `PurchaseOrderItem` per product
+   `DRAFT` _(built: `/purchasing/new/`)_ for a target `Warehouse`, with one `PurchaseOrderItem` per product
    giving `quantity_ordered` and `unit_cost`.
 3. Sending it to the supplier moves it to `ORDERED`, with an `expected_at`
    date.

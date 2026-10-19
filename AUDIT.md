@@ -81,6 +81,7 @@ Geist Mono. Server-rendered; filters are query params, no JS framework.
 | New order | `/orders/new/` | `orders.views.order_new` | customer + up to 6 lines, reserves stock |
 | Purchase orders list | `/purchasing/` | `purchasing.views.purchase_order_list` | status tabs, supplier/warehouse search |
 | Purchase order detail | `/purchasing/<uuid:pk>/` | `purchasing.views.purchase_order_detail` | items, movements, status buttons, receive form |
+| New / edit purchase order | `/purchasing/new/`, `/purchasing/<uuid:pk>/edit/` | `purchasing.views.purchase_order_new`, `purchase_order_edit` | supplier, warehouse, expected date, lines; drafts only |
 
 Status workflows live in `orders/services.py` and `purchasing/services.py`
 (see `README.md`, "Workflows").
@@ -89,8 +90,8 @@ Status workflows live in `orders/services.py` and `purchasing/services.py`
 
 - Dashboard warehouse filter and search from the design, and the "Reorder"
   button.
-- Create/edit forms (`ModelForm`) for products, warehouses, customers,
-  suppliers and purchase orders.
+- Create/edit forms (`ModelForm`) for products, warehouses, customers and
+  suppliers.
 - Design actions with no backend: "New product", "Reorder", "Export CSV",
   "Scan barcode". Decide per button whether to build (create form, CSV
   response) or drop.
@@ -106,4 +107,5 @@ receive) are done. What is left of step 5 is the create/edit forms.
 3. Dashboard, Product detail, restyle products/warehouses. Done.
 4. List/detail pages for the new apps. Done.
 5. Forms, then stock-changing flows (reserve, ship, receive) through
-   `StockMovement`. Flows done; forms partly (new order only).
+   `StockMovement`. Flows done; forms done for orders and purchase orders,
+   still to do for products, warehouses, customers and suppliers.

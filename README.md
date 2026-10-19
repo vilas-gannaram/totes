@@ -104,7 +104,9 @@ ledger, so every counter can be explained from history.
   PO's warehouse (`RECEIPT` rows, creating the inventory row if needed).
   Partial receipts are fine; the PO becomes `RECEIVED` when every line is
   complete.
-- There is no form to create a purchase order yet (admin or `seed_demo`).
+- *New purchase order* (`/purchasing/new/`): supplier, warehouse, optional
+  expected date and product lines with quantity and unit cost. It is saved
+  as a `DRAFT`; drafts (and only drafts) can be edited from their page.
 
 ## Common commands
 
