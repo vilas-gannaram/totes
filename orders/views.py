@@ -1,11 +1,14 @@
 from django.core.paginator import Paginator
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q
-from django.shortcuts import get_object_or_404, render
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
 
 from config.listing import filter_params, status_tabs
 from inventory.models import StockMovement
 
+from .forms import LineFormSet, OrderForm
 from .models import Order
+from .services import InsufficientStock, place_order
 
 PAGE_SIZE = 25
 
@@ -61,3 +64,21 @@ def order_detail(request, pk):
             "movements": movements,
         },
     )
+
+
+def order_new(request):
+    form = OrderForm(request.POST or None)
+    lines = LineFormSet(request.POST or None)
+    stock_error = None
+
+    if request.method == "POST" and form.is_valid() and lines.is_valid():
+        try:
+            order = place_order(form.cleaned_data["customer"], lines.lines())
+        except InsufficientStock as exc:
+            # Stock moved between rendering the form and submitting it.
+            stock_error = f"{exc.product.sku}: only {exc.available} left, you asked for {exc.wanted}."
+        else:
+            messages.success(request, "Order placed and stock reserved.")
+            return redirect("order-detail", pk=order.pk)
+
+    return render(request, "orders/new.html", {"form": form, "lines": lines, "stock_error": stock_error})
