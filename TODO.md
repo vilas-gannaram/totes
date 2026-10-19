@@ -89,7 +89,7 @@ UI items below.
 - [x] List pages for the new apps (see `AUDIT.md` §3): customers, orders
       (status tabs), suppliers, purchase orders (status tabs)
 - [x] Detail pages: order, purchase order (read-only; items + ledger movements)
-- [ ] New order form
+- [x] New order form (`/orders/new/`): customer + up to 6 lines, reserves stock via `place_order`, writes RESERVE ledger rows
 - [ ] Decide the design's action buttons: New product, Reorder, Export CSV,
       Scan barcode (build or drop each)
 - [ ] `ModelForm`s for create/edit, plus flash messages
